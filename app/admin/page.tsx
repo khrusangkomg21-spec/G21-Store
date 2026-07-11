@@ -307,17 +307,25 @@ export default function AdminDashboard() {
                     <div style={{ fontWeight: 600, color: 'white' }}>{product.title}</div>
                     <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{product.description} (รหัส: {product.id})</div>
                   </div>
-                  <input 
-                    type="url" 
-                    defaultValue={product.downloadUrl || ''}
-                    placeholder="วางลิงก์ที่นี่ (เช่น https://1drv.ms/f/s!...)"
-                    style={{ flex: '2', minWidth: '250px', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
-                    onBlur={(e) => {
-                      if(e.target.value !== product.downloadUrl) {
-                        handleUpdateLink(product.id, e.target.value);
-                      }
-                    }}
-                  />
+                  <div style={{ flex: '2', minWidth: '300px', display: 'flex', gap: '0.5rem' }}>
+                    <input 
+                      type="url" 
+                      id={`link-${product.id}`}
+                      defaultValue={product.downloadUrl || ''}
+                      placeholder="วางลิงก์ที่นี่ (เช่น https://1drv.ms/f/s!...)"
+                      style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                    />
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => {
+                        const val = (document.getElementById(`link-${product.id}`) as HTMLInputElement).value;
+                        handleUpdateLink(product.id, val);
+                      }}
+                      style={{ padding: '0.75rem 1.5rem', whiteSpace: 'nowrap' }}
+                    >
+                      บันทึก
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
