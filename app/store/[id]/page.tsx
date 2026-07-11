@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, use, useEffect } from 'react';
 import { notFound } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
+import { getSavedLinks } from '../../actions/product';
 
 // Mock DB
 const subjectDb: Record<string, any> = {
@@ -11,7 +12,7 @@ const subjectDb: Record<string, any> = {
   eco: { title: 'เศรษฐกิจและการเงิน (การเรียนรู้เพื่อชีวิต)', icon: '💰' },
   hea: { title: 'สุขภาพกายและจิต (พลศึกษา)', icon: '🩺' },
   art: { title: 'ศิลปะและวัฒนธรรมเพื่อสุนทรียภาพ', icon: '🎨' },
-  eng: { title: 'ภาษาอังกฤษ (English)', icon: '🔤' },
+  eng: { title: 'ภาษาอังกฤษ (English)', icon: '🇬🇧' },
 };
 
 const standardPackages = [
@@ -38,7 +39,6 @@ const englishPackages = [
   { id: 'single-exam-eng', name: 'ข้อสอบพร้อมเฉลย', price: 59 },
 ];
 
-// ใช้ Promise ตามข้อกำหนดของ Next.js 15+
 export default function ProductDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { addToCart } = useCart();
@@ -48,26 +48,49 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
 
   const currentPackages = id === 'eng' ? englishPackages : standardPackages;
   
-  const checkPackageReady = (pkgId: string) => {
-    if (id === 'eng') return false;
-    if (!['P1', 'P2', 'P3'].includes(selectedGrade)) return false;
-
-    if (pkgId === 'single-normal') return true;
-    if (pkgId === 'single-worksheet' && (id === 'sci' || (id === 'eco' && selectedGrade === 'P1'))) return true;
-    if (pkgId === 'single-exam') return true;
-    if (pkgId === 'single-onepage' && id === 'sci' && ['P1', 'P2'].includes(selectedGrade)) return true;
-
-    return false;
-  };
-
   const [selectedGrade, setSelectedGrade] = useState('P1');
   const [showToast, setShowToast] = useState(false);
   
-  const firstAvailable = currentPackages.find(p => checkPackageReady(p.id))?.id || currentPackages[0].id;
-  const [selectedPackage, setSelectedPackage] = useState(firstAvailable);
+  // State สำหรับเก็บข้อมูลลิงก์ที่ดึงมาจากฐานข้อมูล
+  const [savedLinks, setSavedLinks] = useState<Record<string, boolean>>({});
+  const [isLoadingLinks, setIsLoadingLinks] = useState(true);
+  const [selectedPackage, setSelectedPackage] = useState(currentPackages[0].id);
+
+  // ดึงข้อมูลลิงก์ทั้งหมดทันทีที่โหลดหน้าเว็บ
+  useEffect(() => {
+    getSavedLinks().then(links => {
+      const linkMap: Record<string, boolean> = {};
+      links.forEach(l => {
+        if (l.downloadUrl && l.downloadUrl.trim() !== '') {
+          linkMap[l.id] = true; // มีลิงก์ = พร้อมขาย
+        }
+      });
+      setSavedLinks(linkMap);
+      setIsLoadingLinks(false);
+    });
+  }, []);
+
+  // เช็คว่าแพ็กเกจนี้มีลิงก์พร้อมขายหรือไม่
+  const checkPackageReady = (pkgId: string) => {
+    if (isLoadingLinks) return false;
+    const fullId = `${id}-${selectedGrade}-${pkgId}`;
+    return !!savedLinks[fullId];
+  };
+
+  // เลือกแพ็กเกจแรกที่พร้อมขายให้อัตโนมัติเวลาเปลี่ยนชั้น
+  useEffect(() => {
+    if (!isLoadingLinks) {
+      const firstAvailable = currentPackages.find(p => checkPackageReady(p.id))?.id;
+      if (firstAvailable && !checkPackageReady(selectedPackage as string)) {
+        setSelectedPackage(firstAvailable);
+      }
+    }
+  }, [isLoadingLinks, selectedGrade, id]);
 
   const activePackage = currentPackages.find(p => p.id === selectedPackage);
-  const isReady = checkPackageReady(selectedPackage);
+  const isReady = checkPackageReady(selectedPackage as string);
+  const isVipP1P3Ready = !isLoadingLinks && !!savedLinks['vip-p1-p3'];
+  const isVipP4P6Ready = !isLoadingLinks && !!savedLinks['vip-p4-p6'];
 
   const handleAddToCart = (pkg: any) => {
     if (!pkg) return;
@@ -85,11 +108,11 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleAddVIPToCart = () => {
+  const handleAddVIPToCart = (vipId: string, gradeText: string) => {
     addToCart({
-      id: `vip-p1-p3`,
+      id: vipId,
       subject: 'แพ็กเกจ VIP',
-      grade: 'ป.1-3',
+      grade: gradeText,
       package: 'ครบ จบ ในกลุ่มเดียว (ได้ครบทั้ง 5 วิชาทุกชั้น + แผน + ใบงาน + ข้อสอบ)',
       price: 990,
       icon: '💎'
@@ -249,12 +272,11 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
   };
 
   const specificKey = `${id}-${selectedGrade}-${selectedPackage}`;
-  const currentGallery = sampleGalleries[specificKey] || sampleGalleries[selectedPackage] || sampleGalleries['single-normal'];
+  const currentGallery = sampleGalleries[specificKey] || sampleGalleries[selectedPackage as string] || sampleGalleries['single-normal'];
 
   return (
     <div className="container" style={{ padding: '3rem 0', animation: 'fadeIn 0.5s ease-out', position: 'relative' }}>
       
-      {/* Toast Notification */}
       {showToast && (
         <div style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: 'white', padding: '1rem 2rem', borderRadius: '0.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 1000, display: 'flex', alignItems: 'center', gap: '0.5rem', animation: 'slideDown 0.3s ease-out' }}>
           <span style={{ fontSize: '1.25rem' }}>✅</span> เพิ่มสินค้าลงตะกร้าแล้ว!
@@ -277,28 +299,54 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
               <span style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary)', lineHeight: 1 }}>990.-</span>
             </div>
           </div>
-          <button onClick={handleAddVIPToCart} className="btn btn-primary" style={{ padding: '1rem 2rem', fontSize: '1.25rem', boxShadow: '0 0 20px rgba(212, 175, 55, 0.5)', whiteSpace: 'nowrap' }}>
-            เพิ่มลงตะกร้า VIP
+          <button 
+            onClick={() => handleAddVIPToCart('vip-p1-p3', 'ป.1-3')} 
+            className="btn btn-primary" 
+            style={{ 
+              padding: '1rem 2rem', 
+              fontSize: '1.25rem', 
+              boxShadow: isVipP1P3Ready ? '0 0 20px rgba(212, 175, 55, 0.5)' : 'none', 
+              whiteSpace: 'nowrap',
+              opacity: isVipP1P3Ready ? 1 : 0.5,
+              cursor: isVipP1P3Ready ? 'pointer' : 'not-allowed'
+            }}
+            disabled={!isVipP1P3Ready}
+          >
+            {isLoadingLinks ? 'กำลังโหลด...' : isVipP1P3Ready ? 'เพิ่มลงตะกร้า VIP' : 'Coming Soon'}
           </button>
         </div>
       </div>
 
       {/* VIP Banner P4-6 */}
-      <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '3rem', background: 'linear-gradient(90deg, #0f172a, #1e293b, #0f172a)', border: '1px solid var(--border-color)', textAlign: 'center', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', opacity: 0.8 }}>
+      <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '3rem', background: 'linear-gradient(90deg, #0f172a, #1e293b, #0f172a)', border: '1px solid var(--border-color)', textAlign: 'center', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', opacity: isVipP4P6Ready ? 1 : 0.8 }}>
         <div style={{ textAlign: 'left' }}>
           <h2 style={{ color: 'var(--text-muted)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span>💎</span> G21 MEMBERSHIP VIP [ป.4-6]
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>รอติดตามเร็วๆ นี้ (ได้ครบทั้ง 5 วิชาทุกชั้น + แผน + ใบงาน + ข้อสอบ)</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>ครบ จบ ในกลุ่มเดียว (ได้ครบทั้ง 5 วิชาทุกชั้น + แผน + ใบงาน + ข้อสอบ)</p>
         </div>
         <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '2rem' }}>
           <div>
+            <p style={{ color: 'var(--text-muted)', textDecoration: 'line-through', fontSize: '1rem', marginBottom: 0 }}>มูลค่ารวม 5,9XX.- บาท</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-              <span style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-muted)', lineHeight: 1 }}>เร็วๆ นี้</span>
+              <span style={{ fontSize: '1rem' }}>จ่ายเพียง</span>
+              <span style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-muted)', lineHeight: 1 }}>990.-</span>
             </div>
           </div>
-          <button className="btn btn-outline" disabled style={{ padding: '1rem 2rem', fontSize: '1.25rem', cursor: 'not-allowed', color: 'var(--text-muted)' }}>
-            Coming Soon
+          <button 
+            onClick={() => handleAddVIPToCart('vip-p4-p6', 'ป.4-6')} 
+            className="btn btn-outline" 
+            style={{ 
+              padding: '1rem 2rem', 
+              fontSize: '1.25rem', 
+              whiteSpace: 'nowrap',
+              opacity: isVipP4P6Ready ? 1 : 0.5,
+              cursor: isVipP4P6Ready ? 'pointer' : 'not-allowed',
+              color: isVipP4P6Ready ? 'var(--primary)' : 'var(--text-muted)'
+            }}
+            disabled={!isVipP4P6Ready}
+          >
+            {isLoadingLinks ? 'กำลังโหลด...' : isVipP4P6Ready ? 'เพิ่มลงตะกร้า VIP' : 'Coming Soon'}
           </button>
         </div>
       </div>
@@ -389,14 +437,16 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
             </h3>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               {['P1', 'P2', 'P3', 'P4', 'P5', 'P6'].map(grade => {
-                const isComingSoon = ['P4', 'P5', 'P6'].includes(grade);
+                // หาว่าในชั้นนี้ มีแพ็กเกจไหนพร้อมขายไหม
+                const hasAnyPackage = currentPackages.some(pkg => savedLinks[`${id}-${grade}-${pkg.id}`]);
+                const isComingSoon = !isLoadingLinks && !hasAnyPackage;
+
                 return (
                   <button 
                     key={grade}
-                    onClick={() => !isComingSoon && setSelectedGrade(grade)}
+                    onClick={() => setSelectedGrade(grade)}
                     className={`btn ${selectedGrade === grade ? 'btn-primary' : 'btn-outline'}`}
-                    style={{ flex: 1, minWidth: '30%', padding: '1rem', display: 'flex', flexDirection: 'column', opacity: isComingSoon ? 0.5 : 1, cursor: isComingSoon ? 'not-allowed' : 'pointer' }}
-                    disabled={isComingSoon}
+                    style={{ flex: 1, minWidth: '30%', padding: '1rem', display: 'flex', flexDirection: 'column', opacity: isComingSoon ? 0.6 : 1, cursor: 'pointer' }}
                   >
                     <span style={{ fontSize: '1.25rem' }}>ป.{grade.replace('P', '')}</span>
                     {grade === 'P1' && <span style={{ fontSize: '0.75rem', marginTop: '0.2rem', opacity: 0.8 }}>สีสันสบายตา</span>}
@@ -459,7 +509,7 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
                 style={{ padding: '1rem 2.5rem', fontSize: '1.25rem', opacity: isReady ? 1 : 0.5, cursor: isReady ? 'pointer' : 'not-allowed' }}
                 disabled={!isReady}
               >
-                {isReady ? 'เพิ่มลงตะกร้า' : 'เร็วๆ นี้ (Coming Soon)'}
+                {isLoadingLinks ? 'กำลังโหลด...' : isReady ? 'เพิ่มลงตะกร้า' : 'เร็วๆ นี้ (Coming Soon)'}
               </button>
             </div>
           </div>
