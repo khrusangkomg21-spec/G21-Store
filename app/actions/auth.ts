@@ -4,8 +4,9 @@ import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
+import { redirect } from 'next/navigation';
 
-const secretKey = 'g21-secret-key-mockup-for-mvp'; // In production, use process.env.JWT_SECRET
+const secretKey = 'g21-secret-key-mockup-for-mvp';
 const key = new TextEncoder().encode(secretKey);
 
 export async function register(formData: FormData) {
@@ -34,7 +35,6 @@ export async function register(formData: FormData) {
       },
     });
 
-    // Automatically log in after registration
     await setSession(user.id, user.email, user.role);
 
     return { success: true };
@@ -74,7 +74,7 @@ export async function login(formData: FormData) {
 
 export async function logout() {
   (await cookies()).delete('session');
-  return { success: true };
+  redirect('/login');
 }
 
 export async function getSession() {
