@@ -11,6 +11,64 @@ import {
   updateProductLink 
 } from '@/app/actions/admin';
 
+// คอมโพเนนต์ย่อยสำหรับแต่ละแถวของวิชา เพื่อให้มีปุ่มบันทึกแยกกัน และไม่เด้งแจ้งเตือนกวนใจ
+function ProductRow({ product }: { product: any }) {
+  const [link, setLink] = useState(product.downloadUrl || '');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+
+  const handleSave = async () => {
+    setStatus('saving');
+    try {
+      await updateProductLink(product.id, link);
+      setStatus('saved');
+      // เมื่อกดบันทึกแล้ว จะเปลี่ยนเป็นปุ่มสีเขียว "✅ บันทึกแล้ว" ค้างไว้เลย ไม่มีหน้าต่างเด้งกวนใจ
+    } catch (e) {
+      alert('เกิดข้อผิดพลาดในการบันทึก รบกวนลองอีกครั้งครับ');
+      setStatus('idle');
+    }
+  };
+
+  // เช็คว่าผู้ใช้พิมพ์ลิงก์ใหม่ที่ต่างจากข้อมูลเดิมในระบบหรือไม่
+  const isChanged = link !== (product.downloadUrl || '');
+
+  return (
+    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div style={{ flex: '1', minWidth: '200px' }}>
+        <div style={{ fontWeight: 600, color: 'white' }}>{product.title}</div>
+        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{product.description} (รหัส: {product.id})</div>
+      </div>
+      <div style={{ flex: '2', display: 'flex', gap: '0.5rem' }}>
+        <input 
+          type="url" 
+          value={link}
+          onChange={(e) => {
+            setLink(e.target.value);
+            setStatus('idle'); // รีเซ็ตสถานะปุ่มกลับมาให้กดบันทึกได้เวลาพิมพ์ใหม่
+          }}
+          placeholder="วางลิงก์ที่นี่ (เช่น https://1drv.ms/f/s!...)"
+          style={{ flex: '1', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+        />
+        <button 
+          onClick={handleSave}
+          disabled={!isChanged && status !== 'saved'}
+          className="btn"
+          style={{ 
+            padding: '0 1.5rem', 
+            background: status === 'saved' ? '#10b981' : isChanged ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+            color: status === 'saved' ? 'white' : isChanged ? 'var(--bg-color)' : 'var(--text-muted)',
+            cursor: (!isChanged && status !== 'saved') ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s',
+            fontWeight: 600,
+            whiteSpace: 'nowrap'
+          }}
+        >
+          {status === 'saving' ? '⏳ กำลังบันทึก...' : status === 'saved' ? '✅ บันทึกแล้ว' : 'บันทึกลิงก์'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'orders' | 'products'>('orders');
   const [pendingOrders, setPendingOrders] = useState<any[]>([]);
@@ -58,11 +116,6 @@ export default function AdminDashboard() {
       await rejectOrder(orderId);
       fetchData();
     }
-  };
-
-  const handleUpdateLink = async (productId: string, link: string) => {
-    await updateProductLink(productId, link);
-    alert('บันทึกลิงก์สำเร็จ!');
   };
 
   if (isLoading) {
@@ -204,23 +257,7 @@ export default function AdminDashboard() {
             
             <div style={{ display: 'grid', gap: '1rem' }}>
               {products.map(product => (
-                <div key={product.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div style={{ flex: '1', minWidth: '200px' }}>
-                    <div style={{ fontWeight: 600, color: 'white' }}>{product.title}</div>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{product.description} (รหัส: {product.id})</div>
-                  </div>
-                  <input 
-                    type="url" 
-                    defaultValue={product.downloadUrl || ''}
-                    placeholder="วางลิงก์ที่นี่ (เช่น https://1drv.ms/f/s!...)"
-                    style={{ flex: '2', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
-                    onBlur={(e) => {
-                      if(e.target.value !== product.downloadUrl) {
-                        handleUpdateLink(product.id, e.target.value);
-                      }
-                    }}
-                  />
-                </div>
+                <ProductRow key={product.id} product={product} />
               ))}
             </div>
           </div>
@@ -247,5 +284,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-
-``
