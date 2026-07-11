@@ -108,7 +108,7 @@ export default function Checkout() {
             {cart.map((item, idx) => (
               <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid var(--border-color)' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.1rem', color: 'white' }}>{item.package || item.name}</h3>
+                  <h3 style={{ fontSize: '1.1rem', color: 'white' }}>{item.package || (item as any).name}</h3>
                   <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{item.subject} {item.grade !== 'ป.' && `(ชั้น ${item.grade})`}</p>
                 </div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--primary)' }}>
