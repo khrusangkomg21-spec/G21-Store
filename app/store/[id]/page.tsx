@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 
@@ -37,8 +37,8 @@ const englishPackages = [
   { id: 'single-exam-eng', name: 'ข้อสอบพร้อมเฉลย', price: 59 },
 ];
 
-export default function ProductDetails({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function ProductDetails({ params }: { params: { id: string } }) {
+  const { id } = params;
   const { addToCart } = useCart();
   const subject = subjectDb[id];
   
