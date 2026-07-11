@@ -1,13 +1,12 @@
+'use client';
+
 import Link from 'next/link';
+import { useCart } from '../context/CartContext';
 
 export default function Cart() {
-  const mockCartItems = [
-    { id: 1, subject: 'วิทยาศาสตร์ สิ่งแวดล้อม และเทคโนโลยี', grade: 'ป.1', package: 'เซ็ตแผนปกติพร้อมใบงาน + แผนหน้าเดียว + หลังสอน', price: 239, icon: '🔬' },
-    { id: 2, subject: 'สังคมและความเป็นพลเมือง', grade: 'ป.2', package: 'เซ็ตแผนปกติพร้อมใบงาน + แผนหน้าเดียว + หลังสอน', price: 239, icon: '🌾' },
-    { id: 3, subject: 'ศิลปะและวัฒนธรรมเพื่อสุนทรียภาพ', grade: 'ป.3', package: 'แผนหน้าเดียว', price: 89, icon: '🎨' },
-  ];
+  const { cart, removeFromCart, getCartTotal } = useCart();
 
-  const subtotal = mockCartItems.reduce((sum, item) => sum + item.price, 0);
+  const subtotal = getCartTotal();
   const discount = subtotal >= 500 ? subtotal * 0.1 : 0;
   const total = subtotal - discount;
 
@@ -16,19 +15,18 @@ export default function Cart() {
       <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem' }}>ตะกร้าสินค้า</h1>
       
       <div style={{ display: 'flex', gap: '3rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        {/* Cart Items List */}
         <div style={{ flex: '1.5', minWidth: '300px' }}>
-          {mockCartItems.length > 0 ? (
+          {cart.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {mockCartItems.map(item => (
+              {cart.map(item => (
                 <div key={item.id} className="glass-card" style={{ display: 'flex', padding: '1.5rem', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                   <div style={{ fontSize: '3rem', background: 'rgba(212, 175, 55, 0.1)', padding: '1rem', borderRadius: '1rem' }}>
                     {item.icon}
                   </div>
                   <div style={{ flex: 1, minWidth: '200px' }}>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 600 }}>{item.subject} (ชั้น {item.grade})</div>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 600 }}>{item.subject} {item.grade !== 'ป.' && `(ชั้น ${item.grade})`}</div>
                     <h3 style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>{item.package}</h3>
-                    <button style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                    <button onClick={() => removeFromCart(item.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                       <span style={{ fontSize: '1.2rem' }}>&times;</span> ลบออก
                     </button>
                   </div>
@@ -46,12 +44,11 @@ export default function Cart() {
           )}
         </div>
 
-        {/* Order Summary */}
         <div className="glass-card" style={{ flex: '1', minWidth: '300px', padding: '2rem', position: 'sticky', top: '100px' }}>
           <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>สรุปคำสั่งซื้อ</h3>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <span style={{ color: 'var(--text-muted)' }}>ยอดรวม ({mockCartItems.length} รายการ)</span>
+            <span style={{ color: 'var(--text-muted)' }}>ยอดรวม ({cart.length} รายการ)</span>
             <span>฿{subtotal}</span>
           </div>
 
@@ -67,15 +64,24 @@ export default function Cart() {
             <span style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary)' }}>฿{Math.floor(total)}</span>
           </div>
 
-          <Link href="/checkout" className="btn btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.125rem' }}>
+          <Link href="/checkout" className={`btn btn-primary ${cart.length === 0 ? 'disabled' : ''}`} style={{ width: '100%', padding: '1rem', fontSize: '1.125rem', opacity: cart.length === 0 ? 0.5 : 1, pointerEvents: cart.length === 0 ? 'none' : 'auto' }}>
             ดำเนินการชำระเงิน
           </Link>
           
-          {subtotal < 500 && (
+          {subtotal > 0 && subtotal < 500 && (
             <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '1rem' }}>
               ซื้อเพิ่มอีก ฿{500 - subtotal} เพื่อรับส่วนลด 10%
             </p>
           )}
+
+          {/* Contact Support Info */}
+          <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(212, 175, 55, 0.05)', border: '1px solid var(--border-color)', borderRadius: '0.5rem', textAlign: 'center' }}>
+            <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }}>💬</span>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: 0 }}>
+              หากพบปัญหาหรือต้องการความช่วยเหลือ<br/>สามารถทักอินบ็อกซ์เพจ<br/>
+              <strong style={{ color: 'var(--primary)' }}>สื่องานสอน G21</strong> ได้เลยครับ
+            </p>
+          </div>
         </div>
       </div>
     </div>
