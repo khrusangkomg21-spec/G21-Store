@@ -7,7 +7,12 @@ export default function Cart() {
   const { cart, removeFromCart, getCartTotal } = useCart();
 
   const subtotal = getCartTotal();
-  const discount = subtotal >= 500 ? subtotal * 0.1 : 0;
+  
+  let discountRate = 0;
+  if (subtotal >= 1000) discountRate = 0.15;
+  else if (subtotal >= 500) discountRate = 0.10;
+  
+  const discount = subtotal * discountRate;
   const total = subtotal - discount;
 
   return (
@@ -54,7 +59,7 @@ export default function Cart() {
 
           {discount > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', background: 'rgba(16, 185, 129, 0.1)', padding: '0.5rem 1rem', borderRadius: '0.5rem' }}>
-              <span style={{ color: '#10b981', fontWeight: 600 }}>ส่วนลด 10% (ซื้อครบ 500.-)</span>
+              <span style={{ color: '#10b981', fontWeight: 600 }}>ส่วนลด {discountRate * 100}% (ซื้อครบ {discountRate === 0.15 ? '1,000.-' : '500.-'})</span>
               <span style={{ color: '#10b981', fontWeight: 700 }}>- ฿{Math.floor(discount)}</span>
             </div>
           )}
@@ -68,10 +73,18 @@ export default function Cart() {
             ดำเนินการชำระเงิน
           </Link>
           
-          {subtotal > 0 && subtotal < 500 && (
-            <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '1rem' }}>
-              ซื้อเพิ่มอีก ฿{500 - subtotal} เพื่อรับส่วนลด 10%
-            </p>
+          {subtotal > 0 && subtotal < 1000 && (
+            <div style={{ textAlign: 'center', marginTop: '1rem', background: 'rgba(212, 175, 55, 0.05)', padding: '0.5rem', borderRadius: '0.5rem', border: '1px dashed var(--primary)' }}>
+              {subtotal < 500 ? (
+                <p style={{ color: 'var(--primary)', fontSize: '0.85rem', margin: 0, fontWeight: 500 }}>
+                  🔥 ซื้อเพิ่มอีก ฿{500 - subtotal} รับส่วนลด 10%
+                </p>
+              ) : (
+                <p style={{ color: 'var(--primary)', fontSize: '0.85rem', margin: 0, fontWeight: 500 }}>
+                  🔥 ซื้อเพิ่มอีก ฿{1000 - subtotal} รับส่วนลด 15%
+                </p>
+              )}
+            </div>
           )}
 
           {/* Contact Support Info */}
