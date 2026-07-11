@@ -2,18 +2,16 @@
 
 import prisma from '@/lib/prisma';
 import { getSession } from './auth';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
 
 export async function createOrder(formData: FormData) {
   try {
     const session = await getSession();
     const guestEmail = formData.get('guestEmail') as string;
     const cartDataStr = formData.get('cart') as string;
-    const slipFile = formData.get('slip') as File;
+    const slipBase64 = formData.get('slipBase64') as string;
     const totalAmount = parseFloat(formData.get('totalAmount') as string);
 
-    if (!cartDataStr || !slipFile) {
+    if (!cartDataStr || !slipBase64) {
       return { error: 'ข้อมูลไม่ครบถ้วน กรุณาแนบสลิปโอนเงิน' };
     }
 
@@ -26,31 +24,14 @@ export async function createOrder(formData: FormData) {
       return { error: 'ไม่มีสินค้าในตะกร้า' };
     }
 
-    // Save the slip image
-    const bytes = await slipFile.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    
-    // Ensure directory exists
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'slips');
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (e) {
-      // ignore if exists
-    }
-    
-    const uniqueFileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(slipFile.name)}`;
-    const slipPath = path.join(uploadDir, uniqueFileName);
-    await writeFile(slipPath, buffer);
-    const slipImageUrl = `/uploads/slips/${uniqueFileName}`;
-
-    // Create Order in DB
+    // สร้าง Order
     const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
     
     const order = await prisma.order.create({
       data: {
         orderNumber,
         totalAmount,
-        slipImageUrl,
+        slipImageUrl: slipBase64, // เก็บรูปเป็นรหัสข้อความลง DB โดยตรง
         status: 'PENDING',
         userId: session?.userId as string | undefined,
         guestEmail: session ? undefined : guestEmail,
