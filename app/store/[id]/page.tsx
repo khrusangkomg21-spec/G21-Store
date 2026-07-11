@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 
 // Mock DB
@@ -38,11 +38,18 @@ const englishPackages = [
   { id: 'single-exam-eng', name: 'ข้อสอบพร้อมเฉลย', price: 59 },
 ];
 
-export default function ProductDetails({ params }: { params: { id: string } }) {
-  const { id } = params;
-  const { addToCart } = useCart();
-  const subject = subjectDb[id];
+export default function ProductDetails() {
+  const params = useParams();
+  const id = params?.id as string;
   
+  const { addToCart } = useCart();
+  const [selectedGrade, setSelectedGrade] = useState('P1');
+  const [showToast, setShowToast] = useState(false);
+  
+  // ตรวจสอบว่าโหลด id มาหรือยัง ถ้ายังไม่ให้ทำอะไร (ป้องกันบั๊ก)
+  if (!id) return null;
+
+  const subject = subjectDb[id];
   if (!subject) return notFound();
 
   const currentPackages = id === 'eng' ? englishPackages : standardPackages;
@@ -59,11 +66,9 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
     return false;
   };
 
-  const [selectedGrade, setSelectedGrade] = useState('P1');
-  const [showToast, setShowToast] = useState(false);
-  
   // Find the first available package to set as default, or fallback to the first one
   const firstAvailable = currentPackages.find(p => checkPackageReady(p.id))?.id || currentPackages[0].id;
+  // Use state with a function so it only runs once
   const [selectedPackage, setSelectedPackage] = useState(firstAvailable);
 
   const activePackage = currentPackages.find(p => p.id === selectedPackage);
