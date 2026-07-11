@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { notFound } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 
@@ -11,7 +11,7 @@ const subjectDb: Record<string, any> = {
   eco: { title: 'เศรษฐกิจและการเงิน (การเรียนรู้เพื่อชีวิต)', icon: '💰' },
   hea: { title: 'สุขภาพกายและจิต (พลศึกษา)', icon: '🩺' },
   art: { title: 'ศิลปะและวัฒนธรรมเพื่อสุนทรียภาพ', icon: '🎨' },
-  eng: { title: 'ภาษาอังกฤษ (English)', icon: '🔡' },
+  eng: { title: 'ภาษาอังกฤษ (English)', icon: '🔤' },
 };
 
 const standardPackages = [
@@ -38,8 +38,9 @@ const englishPackages = [
   { id: 'single-exam-eng', name: 'ข้อสอบพร้อมเฉลย', price: 59 },
 ];
 
-export default function ProductDetails({ params }: { params: { id: string } }) {
-  const { id } = params;
+// ใช้ Promise ตามข้อกำหนดของ Next.js 15+
+export default function ProductDetails({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { addToCart } = useCart();
   const subject = subjectDb[id];
   
@@ -62,7 +63,6 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
   const [selectedGrade, setSelectedGrade] = useState('P1');
   const [showToast, setShowToast] = useState(false);
   
-  // Find the first available package to set as default, or fallback to the first one
   const firstAvailable = currentPackages.find(p => checkPackageReady(p.id))?.id || currentPackages[0].id;
   const [selectedPackage, setSelectedPackage] = useState(firstAvailable);
 
@@ -454,18 +454,4 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
                 <h2 style={{ fontSize: '2.5rem', lineHeight: 1, color: 'var(--text-main)' }}>฿{activePackage?.price}</h2>
               </div>
               <button 
-                onClick={() => handleAddToCart(activePackage)}
-                className="btn btn-primary" 
-                style={{ padding: '1rem 2.5rem', fontSize: '1.25rem', opacity: isReady ? 1 : 0.5, cursor: isReady ? 'pointer' : 'not-allowed' }}
-                disabled={!isReady}
-              >
-                {isReady ? 'เพิ่มลงตะกร้า' : 'เร็วๆ นี้ (Coming Soon)'}
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  );
-}
+                onClick={() => handleAddToCart(activePackage
