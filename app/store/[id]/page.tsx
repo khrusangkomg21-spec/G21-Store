@@ -2,8 +2,8 @@
 
 import { useState, use } from 'react';
 import { notFound } from 'next/navigation';
+import { useCart } from '../../context/CartContext';
 
-// Mock DB
 const subjectDb: Record<string, any> = {
   sci: { title: 'วิทยาศาสตร์ สิ่งแวดล้อม และเทคโนโลยี (นักวิทยาศาสตร์น้อย)', icon: '🔬' },
   soc: { title: 'สังคมและความเป็นพลเมือง (ครอบครัวของฉัน)', icon: '🌾' },
@@ -39,6 +39,7 @@ const englishPackages = [
 
 export default function ProductDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const { addToCart } = useCart();
   const subject = subjectDb[id];
   
   if (!subject) return notFound();
@@ -58,159 +59,71 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
   };
 
   const [selectedGrade, setSelectedGrade] = useState('P1');
+  const [showToast, setShowToast] = useState(false);
   
-  // Find the first available package to set as default, or fallback to the first one
   const firstAvailable = currentPackages.find(p => checkPackageReady(p.id))?.id || currentPackages[0].id;
   const [selectedPackage, setSelectedPackage] = useState(firstAvailable);
 
   const activePackage = currentPackages.find(p => p.id === selectedPackage);
   const isReady = checkPackageReady(selectedPackage);
 
+  const handleAddToCart = (pkg: any) => {
+    if (!pkg) return;
+    const cartItemId = `${id}-${selectedGrade}-${pkg.id}`;
+    addToCart({
+      id: cartItemId,
+      subject: subject.title.split(' ')[0],
+      grade: `ป.${selectedGrade.replace('P', '')}`,
+      package: pkg.name,
+      price: pkg.price,
+      icon: subject.icon
+    });
+    
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const handleAddVIPToCart = () => {
+    addToCart({
+      id: `vip-p1-p3`,
+      subject: 'แพ็กเกจ VIP',
+      grade: 'ป.1-3',
+      package: 'ครบ จบ ในกลุ่มเดียว (ได้ครบทั้ง 5 วิชาทุกชั้น + แผน + ใบงาน + ข้อสอบ)',
+      price: 990,
+      icon: '💎'
+    });
+    
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
   const sampleGalleries: Record<string, string[]> = {
-    'sci-P1-single-normal': [
-      '/samples/media__1783762433916.jpg',
-      '/samples/media__1783762433921.jpg',
-      '/samples/media__1783762433931.jpg',
-      '/samples/media__1783762433935.jpg',
-      '/samples/media__1783762433952.jpg'
-    ],
-    'sci-P2-single-normal': [
-      '/samples/media__1783762765626.jpg',
-      '/samples/media__1783762765629.jpg',
-      '/samples/media__1783762765635.jpg',
-      '/samples/media__1783762765644.jpg'
-    ],
-    'sci-P3-single-normal': [
-      '/samples/media__1783762881489.jpg',
-      '/samples/media__1783762881494.jpg',
-      '/samples/media__1783762881498.jpg',
-      '/samples/media__1783762881504.jpg'
-    ],
-    'eco-P1-single-normal': [
-      '/samples/media__1783762992348.jpg',
-      '/samples/media__1783762992353.jpg',
-      '/samples/media__1783762992360.jpg',
-      '/samples/media__1783762992363.jpg'
-    ],
-    'sci-P1-single-worksheet': [
-      '/samples/media__1783762628556.jpg',
-      '/samples/media__1783762628562.jpg',
-      '/samples/media__1783762628566.jpg',
-      '/samples/media__1783762628595.jpg'
-    ],
-    'sci-P2-single-worksheet': [
-      '/samples/media__1783762808728.jpg',
-      '/samples/media__1783762808736.jpg',
-      '/samples/media__1783762808739.jpg',
-      '/samples/media__1783762808744.jpg'
-    ],
-    'sci-P3-single-worksheet': [
-      '/samples/media__1783762899853.jpg',
-      '/samples/media__1783762899856.jpg',
-      '/samples/media__1783762899860.jpg',
-      '/samples/media__1783762899865.jpg'
-    ],
-    'eco-P1-single-worksheet': [
-      '/samples/media__1783763026140.jpg',
-      '/samples/media__1783763026144.jpg',
-      '/samples/media__1783763026148.jpg',
-      '/samples/media__1783763026154.jpg'
-    ],
+    'sci-P1-single-normal': ['/samples/media__1783762433916.jpg', '/samples/media__1783762433921.jpg', '/samples/media__1783762433931.jpg', '/samples/media__1783762433935.jpg', '/samples/media__1783762433952.jpg'],
+    'sci-P2-single-normal': ['/samples/media__1783762765626.jpg', '/samples/media__1783762765629.jpg', '/samples/media__1783762765635.jpg', '/samples/media__1783762765644.jpg'],
+    'sci-P3-single-normal': ['/samples/media__1783762881489.jpg', '/samples/media__1783762881494.jpg', '/samples/media__1783762881498.jpg', '/samples/media__1783762881504.jpg'],
+    'eco-P1-single-normal': ['/samples/media__1783762992348.jpg', '/samples/media__1783762992353.jpg', '/samples/media__1783762992360.jpg', '/samples/media__1783762992363.jpg'],
+    'sci-P1-single-worksheet': ['/samples/media__1783762628556.jpg', '/samples/media__1783762628562.jpg', '/samples/media__1783762628566.jpg', '/samples/media__1783762628595.jpg'],
+    'sci-P2-single-worksheet': ['/samples/media__1783762808728.jpg', '/samples/media__1783762808736.jpg', '/samples/media__1783762808739.jpg', '/samples/media__1783762808744.jpg'],
+    'sci-P3-single-worksheet': ['/samples/media__1783762899853.jpg', '/samples/media__1783762899856.jpg', '/samples/media__1783762899860.jpg', '/samples/media__1783762899865.jpg'],
+    'eco-P1-single-worksheet': ['/samples/media__1783763026140.jpg', '/samples/media__1783763026144.jpg', '/samples/media__1783763026148.jpg', '/samples/media__1783763026154.jpg'],
     'single-normal': ['https://placehold.co/400x600/0f172a/10b981?text=Lesson+Plan+1', 'https://placehold.co/400x600/0f172a/10b981?text=Lesson+Plan+2'],
     'single-worksheet': ['https://placehold.co/400x600/0f172a/3b82f6?text=Worksheet+1', 'https://placehold.co/400x600/0f172a/3b82f6?text=Worksheet+2', 'https://placehold.co/400x600/0f172a/3b82f6?text=Worksheet+3'],
-    'single-onepage': [
-      '/samples/media__1783762723526.jpg',
-      '/samples/media__1783762723602.jpg',
-      '/samples/media__1783762723608.jpg',
-      '/samples/media__1783762723613.jpg'
-    ],
-    'sci-P1-single-exam': [
-      '/samples/media__1783763319487.jpg',
-      '/samples/media__1783763319491.jpg',
-      '/samples/media__1783763319494.jpg',
-      '/samples/media__1783763328974.jpg'
-    ],
-    'sci-P2-single-exam': [
-      '/samples/media__1783763629830.jpg',
-      '/samples/media__1783763629838.jpg',
-      '/samples/media__1783763635346.jpg',
-      '/samples/media__1783763635356.jpg'
-    ],
-    'sci-P3-single-exam': [
-      '/samples/media__1783763677698.jpg',
-      '/samples/media__1783763677703.jpg',
-      '/samples/media__1783763684160.jpg',
-      '/samples/media__1783763684203.jpg'
-    ],
-    'soc-P1-single-exam': [
-      '/samples/media__1783763881634.jpg',
-      '/samples/media__1783763881670.jpg',
-      '/samples/media__1783763881673.jpg'
-    ],
-    'soc-P2-single-exam': [
-      '/samples/media__1783763918886.jpg',
-      '/samples/media__1783763918893.jpg',
-      '/samples/media__1783763926240.jpg',
-      '/samples/media__1783763926246.jpg'
-    ],
-    'soc-P3-single-exam': [
-      '/samples/media__1783763941893.jpg',
-      '/samples/media__1783763941911.jpg',
-      '/samples/media__1783763951438.jpg',
-      '/samples/media__1783763951439.jpg'
-    ],
-    'eco-P1-single-exam': [
-      '/samples/media__1783764048204.jpg',
-      '/samples/media__1783764048243.jpg',
-      '/samples/media__1783764054894.jpg',
-      '/samples/media__1783764054896.jpg'
-    ],
-    'eco-P2-single-exam': [
-      '/samples/media__1783764074140.jpg',
-      '/samples/media__1783764074146.jpg',
-      '/samples/media__1783764083053.jpg',
-      '/samples/media__1783764083057.jpg'
-    ],
-    'eco-P3-single-exam': [
-      '/samples/media__1783764097501.jpg',
-      '/samples/media__1783764097505.jpg',
-      '/samples/media__1783764109449.jpg',
-      '/samples/media__1783764109451.jpg'
-    ],
-    'health-P1-single-exam': [
-      '/samples/media__1783764243426.jpg',
-      '/samples/media__1783764243432.jpg',
-      '/samples/media__1783764250811.jpg',
-      '/samples/media__1783764250820.jpg'
-    ],
-    'health-P2-single-exam': [
-      '/samples/media__1783764263147.jpg',
-      '/samples/media__1783764263220.jpg',
-      '/samples/media__1783764271208.jpg',
-      '/samples/media__1783764271210.jpg'
-    ],
-    'health-P3-single-exam': [
-      '/samples/media__1783764284627.jpg',
-      '/samples/media__1783764284667.jpg',
-      '/samples/media__1783764290100.jpg',
-      '/samples/media__1783764290101.jpg'
-    ],
-    'art-P1-single-exam': [
-      '/samples/media__1783764533393.jpg',
-      '/samples/media__1783764533404.jpg',
-      '/samples/media__1783764541275.jpg',
-      '/samples/media__1783764541276.jpg'
-    ],
-    'art-P2-single-exam': [
-      '/samples/media__1783764565226.jpg',
-      '/samples/media__1783764565230.jpg',
-      '/samples/media__1783764579838.jpg'
-    ],
-    'art-P3-single-exam': [
-      '/samples/media__1783764579845.jpg',
-      '/samples/media__1783764586582.jpg',
-      '/samples/media__1783764586583.jpg'
-    ],
+    'single-onepage': ['/samples/media__1783762723526.jpg', '/samples/media__1783762723602.jpg', '/samples/media__1783762723608.jpg', '/samples/media__1783762723613.jpg'],
+    'sci-P1-single-exam': ['/samples/media__1783763319487.jpg', '/samples/media__1783763319491.jpg', '/samples/media__1783763319494.jpg', '/samples/media__1783763328974.jpg'],
+    'sci-P2-single-exam': ['/samples/media__1783763629830.jpg', '/samples/media__1783763629838.jpg', '/samples/media__1783763635346.jpg', '/samples/media__1783763635356.jpg'],
+    'sci-P3-single-exam': ['/samples/media__1783763677698.jpg', '/samples/media__1783763677703.jpg', '/samples/media__1783763684160.jpg', '/samples/media__1783763684203.jpg'],
+    'soc-P1-single-exam': ['/samples/media__1783763881634.jpg', '/samples/media__1783763881670.jpg', '/samples/media__1783763881673.jpg'],
+    'soc-P2-single-exam': ['/samples/media__1783763918886.jpg', '/samples/media__1783763918893.jpg', '/samples/media__1783763926240.jpg', '/samples/media__1783763926246.jpg'],
+    'soc-P3-single-exam': ['/samples/media__1783763941893.jpg', '/samples/media__1783763941911.jpg', '/samples/media__1783763951438.jpg', '/samples/media__1783763951439.jpg'],
+    'eco-P1-single-exam': ['/samples/media__1783764048204.jpg', '/samples/media__1783764048243.jpg', '/samples/media__1783764054894.jpg', '/samples/media__1783764054896.jpg'],
+    'eco-P2-single-exam': ['/samples/media__1783764074140.jpg', '/samples/media__1783764074146.jpg', '/samples/media__1783764083053.jpg', '/samples/media__1783764083057.jpg'],
+    'eco-P3-single-exam': ['/samples/media__1783764097501.jpg', '/samples/media__1783764097505.jpg', '/samples/media__1783764109449.jpg', '/samples/media__1783764109451.jpg'],
+    'health-P1-single-exam': ['/samples/media__1783764243426.jpg', '/samples/media__1783764243432.jpg', '/samples/media__1783764250811.jpg', '/samples/media__1783764250820.jpg'],
+    'health-P2-single-exam': ['/samples/media__1783764263147.jpg', '/samples/media__1783764263220.jpg', '/samples/media__1783764271208.jpg', '/samples/media__1783764271210.jpg'],
+    'health-P3-single-exam': ['/samples/media__1783764284627.jpg', '/samples/media__1783764284667.jpg', '/samples/media__1783764290100.jpg', '/samples/media__1783764290101.jpg'],
+    'art-P1-single-exam': ['/samples/media__1783764533393.jpg', '/samples/media__1783764533404.jpg', '/samples/media__1783764541275.jpg', '/samples/media__1783764541276.jpg'],
+    'art-P2-single-exam': ['/samples/media__1783764565226.jpg', '/samples/media__1783764565230.jpg', '/samples/media__1783764579838.jpg'],
+    'art-P3-single-exam': ['/samples/media__1783764579845.jpg', '/samples/media__1783764586582.jpg', '/samples/media__1783764586583.jpg'],
     'single-exam': ['https://placehold.co/400x600/0f172a/ef4444?text=Exam+1', 'https://placehold.co/400x600/0f172a/ef4444?text=Exam+2'],
     'combo-full': ['https://placehold.co/400x600/0f172a/8b5cf6?text=Combo+Preview+1']
   };
@@ -219,31 +132,58 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
   const currentGallery = sampleGalleries[specificKey] || sampleGalleries[selectedPackage] || sampleGalleries['single-normal'];
 
   return (
-    <div className="container" style={{ padding: '3rem 0', animation: 'fadeIn 0.5s ease-out' }}>
+    <div className="container" style={{ padding: '3rem 0', animation: 'fadeIn 0.5s ease-out', position: 'relative' }}>
       
-      {/* VIP Banner */}
-      <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '3rem', background: 'linear-gradient(90deg, #051A11, #1A4731, #051A11)', border: '2px solid var(--primary)', textAlign: 'center', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {showToast && (
+        <div style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: 'white', padding: '1rem 2rem', borderRadius: '0.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 1000, display: 'flex', alignItems: 'center', gap: '0.5rem', animation: 'slideDown 0.3s ease-out' }}>
+          <span style={{ fontSize: '1.25rem' }}>✅</span> เพิ่มสินค้าลงตะกร้าแล้ว!
+        </div>
+      )}
+
+      {/* VIP Banner P1-3 */}
+      <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '1.5rem', background: 'linear-gradient(90deg, #051A11, #1A4731, #051A11)', border: '2px solid var(--primary)', textAlign: 'center', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ textAlign: 'left' }}>
           <h2 style={{ color: 'var(--primary)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span>💎</span> G21 MEMBERSHIP VIP [ป.1-3]
           </h2>
           <p style={{ color: 'var(--text-main)', fontSize: '1.1rem' }}>ครบ จบ ในกลุ่มเดียว (ได้ครบทั้ง 5 วิชาทุกชั้น + แผน + ใบงาน + ข้อสอบ)</p>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ color: 'var(--text-muted)', textDecoration: 'line-through', fontSize: '1rem' }}>มูลค่ารวม 5,9XX.- บาท</p>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem' }}>
-            <span style={{ fontSize: '1.2rem' }}>จ่ายเพียง</span>
-            <span style={{ fontSize: '3rem', fontWeight: 700, color: 'var(--primary)', lineHeight: 1 }}>990.-</span>
+        <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          <div>
+            <p style={{ color: 'var(--text-muted)', textDecoration: 'line-through', fontSize: '1rem', marginBottom: 0 }}>มูลค่ารวม 5,9XX.- บาท</p>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1rem' }}>จ่ายเพียง</span>
+              <span style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary)', lineHeight: 1 }}>990.-</span>
+            </div>
           </div>
+          <button onClick={handleAddVIPToCart} className="btn btn-primary" style={{ padding: '1rem 2rem', fontSize: '1.25rem', boxShadow: '0 0 20px rgba(212, 175, 55, 0.5)', whiteSpace: 'nowrap' }}>
+            เพิ่มลงตะกร้า VIP
+          </button>
         </div>
-        <button className="btn btn-primary" style={{ padding: '1rem 2rem', fontSize: '1.25rem', boxShadow: '0 0 20px rgba(212, 175, 55, 0.5)' }}>
-          สมัคร VIP เข้ากลุ่ม
-        </button>
+      </div>
+
+      {/* VIP Banner P4-6 */}
+      <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '3rem', background: 'linear-gradient(90deg, #0f172a, #1e293b, #0f172a)', border: '1px solid var(--border-color)', textAlign: 'center', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', opacity: 0.8 }}>
+        <div style={{ textAlign: 'left' }}>
+          <h2 style={{ color: 'var(--text-muted)', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>💎</span> G21 MEMBERSHIP VIP [ป.4-6]
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>รอติดตามเร็วๆ นี้ (ได้ครบทั้ง 5 วิชาทุกชั้น + แผน + ใบงาน + ข้อสอบ)</p>
+        </div>
+        <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+              <span style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-muted)', lineHeight: 1 }}>เร็วๆ นี้</span>
+            </div>
+          </div>
+          <button className="btn btn-outline" disabled style={{ padding: '1rem 2rem', fontSize: '1.25rem', cursor: 'not-allowed', color: 'var(--text-muted)' }}>
+            Coming Soon
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: '4rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
         
-        {/* Left: Image/Icon & Features */}
         <div style={{ flex: '1', minWidth: '350px' }}>
           <div className="glass-card" style={{ height: '350px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at top right, #1A4731, var(--surface))', color: 'var(--primary)', marginBottom: '2rem' }}>
             <div style={{ fontSize: '8rem', textShadow: '0 0 30px rgba(212,175,55,0.4)' }}>{subject.icon}</div>
@@ -314,7 +254,6 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
           </div>
         </div>
 
-        {/* Right: Details & Selection */}
         <div style={{ flex: '1.2', minWidth: '400px' }}>
           <span style={{ color: 'var(--primary)', fontWeight: 600, letterSpacing: '1px' }}>หลักสูตรใหม่ 2568 (การประยุกต์ใช้ในชีวิตประจำวัน)</span>
           <h1 style={{ fontSize: '2.5rem', margin: '0.5rem 0 1.5rem' }}>{subject.title}</h1>
@@ -391,6 +330,7 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
                 <h2 style={{ fontSize: '2.5rem', lineHeight: 1, color: 'var(--text-main)' }}>฿{activePackage?.price}</h2>
               </div>
               <button 
+                onClick={() => handleAddToCart(activePackage)}
                 className="btn btn-primary" 
                 style={{ padding: '1rem 2.5rem', fontSize: '1.25rem', opacity: isReady ? 1 : 0.5, cursor: isReady ? 'pointer' : 'not-allowed' }}
                 disabled={!isReady}
