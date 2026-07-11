@@ -7,7 +7,7 @@ export default function Store() {
     { id: 'eco', title: 'เศรษฐกิจและการเงิน', desc: 'การเรียนรู้เพื่อชีวิต ป.1 - ป.3', icon: '💰', image: '/eco.jpg' },
     { id: 'hea', title: 'สุขภาพกายและจิต', desc: 'พลศึกษา ป.1 - ป.3', icon: '🩺', image: '/hea.jpg' },
     { id: 'art', title: 'ศิลปะและวัฒนธรรมเพื่อสุนทรียภาพ', desc: 'ศิลปะ ป.1 - ป.3', icon: '🎨', image: '/art.jpg' },
-    { id: 'eng', title: 'ภาษาอังกฤษ', desc: 'รายวิชาพื้นฐาน 80 ชม.', icon: '🇬🇧', image: '/eng.jpg' },
+    { id: 'eng', title: 'ภาษาอังกฤษ', desc: 'รายวิชาพื้นฐาน 80 ชม.', icon: '🔤', image: '/eng.jpg' },
   ];
 
   return (
