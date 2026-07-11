@@ -4,28 +4,24 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createOrder } from '@/app/actions/order';
+import { useCart } from '../context/CartContext';
 
 export default function Checkout() {
-  const [cart, setCart] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
+  const { cart, getCartTotal, clearCart } = useCart();
   const [guestEmail, setGuestEmail] = useState('');
   const [slipImage, setSlipImage] = useState<File | null>(null);
   const [slipPreview, setSlipPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [isLoaded, setIsLoaded] = useState(false);
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Load cart from localStorage
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      const parsedCart = JSON.parse(savedCart);
-      setCart(parsedCart);
-      const totalAmount = parsedCart.reduce((sum: number, item: any) => sum + item.price, 0);
-      setTotal(totalAmount);
-    }
+    setIsLoaded(true);
   }, []);
+
+  const total = getCartTotal();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -66,13 +62,14 @@ export default function Checkout() {
       setError(result.error);
       setIsSubmitting(false);
     } else {
-      // Clear cart
-      localStorage.removeItem('cart');
+      clearCart();
       alert(`สั่งซื้อสำเร็จ! รหัสคำสั่งซื้อของคุณคือ ${result.orderNumber} (รอแอดมินตรวจสอบสลิปสักครู่นะครับ)`);
       router.push('/store');
       router.refresh();
     }
   };
+
+  if (!isLoaded) return null;
 
   if (cart.length === 0) {
     return (
@@ -101,7 +98,7 @@ export default function Checkout() {
             {cart.map((item, idx) => (
               <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid var(--border-color)' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.1rem', color: 'white' }}>{item.name}</h3>
+                  <h3 style={{ fontSize: '1.1rem', color: 'white' }}>{item.package}</h3>
                   <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{item.subject} {item.grade}</p>
                 </div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--primary)' }}>
