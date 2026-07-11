@@ -179,15 +179,35 @@ export default function AdminDashboard() {
 
         {activeTab === 'products' && (
           <div>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>กำหนดลิงก์ดาวน์โหลด (OneDrive/Google Drive)</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ fontSize: '1.5rem' }}>กำหนดลิงก์ดาวน์โหลด (OneDrive/Google Drive)</h2>
+              <button 
+                onClick={async () => {
+                  if (confirm('ยืนยันการซิงค์รายวิชาทั้งหมดเข้าระบบ? (จะใช้เวลาสักครู่)')) {
+                    try {
+                      const res = await fetch('/api/admin/sync-products');
+                      const data = await res.json();
+                      alert(data.message || 'ซิงค์ข้อมูลสำเร็จ!');
+                      window.location.reload();
+                    } catch (e) {
+                      alert('เกิดข้อผิดพลาดในการซิงค์ข้อมูล');
+                    }
+                  }
+                }}
+                className="btn btn-outline"
+                style={{ padding: '0.5rem 1rem', borderColor: 'var(--primary)', color: 'var(--primary)' }}
+              >
+                🔄 ดึงรายชื่อวิชาทั้งหมดเข้าระบบ
+              </button>
+            </div>
             <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>นำลิงก์แชร์ไฟล์งานมาวางให้ตรงกับแพ็กเกจ เพื่อให้ลูกค้าดาวน์โหลดอัตโนมัติเมื่ออนุมัติสลิป</p>
             
             <div style={{ display: 'grid', gap: '1rem' }}>
               {products.map(product => (
                 <div key={product.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <div style={{ flex: '1', minWidth: '200px' }}>
-                    <div style={{ fontWeight: 600, color: 'white' }}>{product.name}</div>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{product.subject} {product.grade} (รหัส: {product.key})</div>
+                    <div style={{ fontWeight: 600, color: 'white' }}>{product.title}</div>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{product.description} (รหัส: {product.id})</div>
                   </div>
                   <input 
                     type="url" 
@@ -227,3 +247,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+``
