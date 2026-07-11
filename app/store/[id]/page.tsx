@@ -10,7 +10,7 @@ const subjectDb: Record<string, any> = {
   eco: { title: 'เศรษฐกิจและการเงิน (การเรียนรู้เพื่อชีวิต)', icon: '💰' },
   hea: { title: 'สุขภาพกายและจิต (พลศึกษา)', icon: '🩺' },
   art: { title: 'ศิลปะและวัฒนธรรมเพื่อสุนทรียภาพ', icon: '🎨' },
-  eng: { title: 'ภาษาอังกฤษ (English)', icon: '🇬🇧' },
+  eng: { title: 'ภาษาอังกฤษ (English)', icon: '🔡' },
 };
 
 const standardPackages = [
