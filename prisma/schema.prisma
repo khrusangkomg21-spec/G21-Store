@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  password  String?  // if using credentials
+  role               String    @default("USER") // "USER" or "ADMIN"
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  orders             Order[]
+}
+
+model Product {
+  id          String   @id
+  title       String
+  description String?
+  price       Float
+  category    String
+  grade       String
+  downloadUrl String?  // URL from OneDrive / Google Drive for file delivery
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  orderNumber   String      @unique // e.g. ORD-12345
+  userId        String?     // null if guest checkout
+  user          User?       @relation(fields: [userId], references: [id])
+  guestEmail    String?
+  totalAmount   Float
+  status        String      @default("PENDING") // PENDING, APPROVED, REJECTED
+  slipImageUrl  String?     // URL to the uploaded payment slip
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  items         OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  price     Float
+  quantity  Int     @default(1)
+}
