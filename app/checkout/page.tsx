@@ -4,42 +4,31 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createOrder } from '@/app/actions/order';
+import { useCart } from '../context/CartContext';
 
 export default function Checkout() {
-  const [cart, setCart] = useState<any[]>([]);
-  const [subtotal, setSubtotal] = useState(0);
-  const [discountRate, setDiscountRate] = useState(0);
-  const [discount, setDiscount] = useState(0);
-  const [total, setTotal] = useState(0);
+  const { cart, clearCart, getCartTotal } = useCart();
   
   const [guestEmail, setGuestEmail] = useState('');
   const [slipImage, setSlipImage] = useState<File | null>(null);
   const [slipPreview, setSlipPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [mounted, setMounted] = useState(false);
+  
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Load cart from localStorage
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      const parsedCart = JSON.parse(savedCart);
-      setCart(parsedCart);
-      
-      const st = parsedCart.reduce((sum: number, item: any) => sum + item.price, 0);
-      setSubtotal(st);
-      
-      let rate = 0;
-      if (st >= 1000) rate = 0.15;
-      else if (st >= 500) rate = 0.10;
-      
-      const d = Math.floor(st * rate);
-      setDiscountRate(rate);
-      setDiscount(d);
-      setTotal(st - d);
-    }
+    setMounted(true);
   }, []);
+
+  const subtotal = getCartTotal();
+  let discountRate = 0;
+  if (subtotal >= 1000) discountRate = 0.15;
+  else if (subtotal >= 500) discountRate = 0.10;
+  const discount = Math.floor(subtotal * discountRate);
+  const total = subtotal - discount;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -80,13 +69,17 @@ export default function Checkout() {
       setError(result.error);
       setIsSubmitting(false);
     } else {
-      // Clear cart
-      localStorage.removeItem('cart');
+      clearCart();
       alert(`สั่งซื้อสำเร็จ! รหัสคำสั่งซื้อของคุณคือ ${result.orderNumber} (รอแอดมินตรวจสอบสลิปสักครู่นะครับ)`);
       router.push('/store');
       router.refresh();
     }
   };
+
+  // ป้องกัน UI กระพริบก่อนดึงข้อมูลตะกร้าเสร็จ
+  if (!mounted) {
+    return <div className="container" style={{ padding: '4rem 0', textAlign: 'center', minHeight: '60vh' }}>กำลังโหลดข้อมูล...</div>;
+  }
 
   if (cart.length === 0) {
     return (
@@ -115,8 +108,8 @@ export default function Checkout() {
             {cart.map((item, idx) => (
               <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid var(--border-color)' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.1rem', color: 'white' }}>{item.name}</h3>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{item.subject} {item.grade}</p>
+                  <h3 style={{ fontSize: '1.1rem', color: 'white' }}>{item.package || item.name}</h3>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{item.subject} {item.grade !== 'ป.' && `(ชั้น ${item.grade})`}</p>
                 </div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--primary)' }}>
                   ฿{item.price}
