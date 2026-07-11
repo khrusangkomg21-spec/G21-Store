@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "unzip -o samples.zip -d public/ && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
