@@ -60,8 +60,8 @@ export default function MyFiles() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{file.name}</h3>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', flex: 1 }}>{file.subject} {file.grade}</p>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'white' }}>{file.title}</h3>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', flex: 1, fontSize: '0.95rem' }}>{file.description}</p>
               
               {file.downloadUrl ? (
                 <a href={file.downloadUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
