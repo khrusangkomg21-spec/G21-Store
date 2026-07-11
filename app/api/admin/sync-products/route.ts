@@ -1,0 +1,99 @@
+import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+const subjects = [
+  { id: 'sci', title: 'วิทยาศาสตร์ สิ่งแวดล้อม และเทคโนโลยี' },
+  { id: 'soc', title: 'สังคมและความเป็นพลเมือง' },
+  { id: 'eco', title: 'เศรษฐกิจและการเงิน' },
+  { id: 'hea', title: 'สุขภาพกายและจิต' },
+  { id: 'art', title: 'ศิลปะและวัฒนธรรมเพื่อสุนทรียภาพ' },
+  { id: 'eng', title: 'ภาษาอังกฤษ' },
+];
+
+const grades = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
+
+const standardPackages = [
+  { id: 'combo-full', name: 'เซ็ตแผนปกติพร้อมใบงาน + แผนหน้าเดียว + หลังสอน', price: 239 },
+  { id: 'combo-normal', name: 'เซ็ตแผนปกติพร้อมใบงาน + หลังสอน', price: 199 },
+  { id: 'combo-onepage-worksheet', name: 'เซ็ตแผนหน้าเดียว + หลังสอน + ใบงาน', price: 189 },
+  { id: 'combo-onepage', name: 'เซ็ตแผนหน้าเดียว + หลังสอน', price: 159 },
+  { id: 'single-normal', name: 'แผนการสอน 40 ชั่วโมง + ใบงานพร้อมเฉลย', price: 150 },
+  { id: 'single-post', name: 'บันทึกหลังสอน (120 แบบ)', price: 99 },
+  { id: 'single-onepage', name: 'แผนหน้าเดียว', price: 89 },
+  { id: 'single-worksheet', name: 'ใบงาน PNG ไม่ติดลายน้ำ', price: 79 },
+  { id: 'single-exam', name: 'ข้อสอบพร้อมเฉลย', price: 59 },
+];
+
+const englishPackages = [
+  { id: 'combo-full-eng', name: 'เซ็ตแผนปกติพร้อมใบงาน + แผนหน้าเดียว + หลังสอน', price: 399 },
+  { id: 'combo-normal-eng', name: 'เซ็ตแผนปกติพร้อมใบงาน + หลังสอน', price: 329 },
+  { id: 'combo-onepage-worksheet-eng', name: 'เซ็ตแผนหน้าเดียว + หลังสอน + ใบงาน', price: 299 },
+  { id: 'combo-onepage-eng', name: 'เซ็ตแผนหน้าเดียว + หลังสอน', price: 259 },
+  { id: 'single-normal-eng', name: 'แผนการสอน 80 ชั่วโมง + ใบงานพร้อมเฉลย', price: 250 },
+  { id: 'single-post-eng', name: 'บันทึกหลังสอน', price: 159 },
+  { id: 'single-onepage-eng', name: 'แผนหน้าเดียว', price: 149 },
+  { id: 'single-worksheet-eng', name: 'ใบงาน PNG ไม่ติดลายน้ำ', price: 129 },
+  { id: 'single-exam-eng', name: 'ข้อสอบพร้อมเฉลย', price: 59 },
+];
+
+export async function GET() {
+  try {
+    let count = 0;
+
+    await prisma.product.upsert({
+      where: { id: 'vip-p1-p3' },
+      update: {},
+      create: {
+        id: 'vip-p1-p3',
+        title: 'แพ็กเกจ VIP',
+        description: 'ครบ จบ ในกลุ่มเดียว (ได้ครบทั้ง 5 วิชาทุกชั้น + แผน + ใบงาน + ข้อสอบ)',
+        price: 990,
+        category: 'VIP',
+        grade: 'ป.1-3',
+      }
+    });
+    count++;
+
+    await prisma.product.upsert({
+      where: { id: 'vip-p4-p6' },
+      update: {},
+      create: {
+        id: 'vip-p4-p6',
+        title: 'แพ็กเกจ VIP',
+        description: 'ครบ จบ ในกลุ่มเดียว (รอติดตามเร็วๆ นี้)',
+        price: 990,
+        category: 'VIP',
+        grade: 'ป.4-6',
+      }
+    });
+    count++;
+
+    for (const subject of subjects) {
+      for (const grade of grades) {
+        const pkgs = subject.id === 'eng' ? englishPackages : standardPackages;
+        for (const pkg of pkgs) {
+          const productId = `${subject.id}-${grade}-${pkg.id}`;
+          await prisma.product.upsert({
+            where: { id: productId },
+            update: {},
+            create: {
+              id: productId,
+              title: `${pkg.name}`,
+              description: `${subject.title} ป.${grade.replace('P', '')}`,
+              price: pkg.price,
+              category: subject.id,
+              grade: grade,
+            }
+          });
+          count++;
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true, message: `ซิงค์ข้อมูลสำเร็จจำนวน ${count} รายการ!` });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
