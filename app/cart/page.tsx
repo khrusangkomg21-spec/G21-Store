@@ -20,6 +20,7 @@ export default function Cart() {
       <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem' }}>ตะกร้าสินค้า</h1>
       
       <div style={{ display: 'flex', gap: '3rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        {/* Cart Items List */}
         <div style={{ flex: '1.5', minWidth: '300px' }}>
           {cart.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -49,6 +50,7 @@ export default function Cart() {
           )}
         </div>
 
+        {/* Order Summary */}
         <div className="glass-card" style={{ flex: '1', minWidth: '300px', padding: '2rem', position: 'sticky', top: '100px' }}>
           <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>สรุปคำสั่งซื้อ</h3>
           
@@ -87,13 +89,25 @@ export default function Cart() {
             </div>
           )}
 
-          {/* Contact Support Info */}
-          <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(212, 175, 55, 0.05)', border: '1px solid var(--border-color)', borderRadius: '0.5rem', textAlign: 'center' }}>
-            <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }}>💬</span>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: 0 }}>
-              หากพบปัญหาหรือต้องการความช่วยเหลือ<br/>สามารถทักอินบ็อกซ์เพจ<br/>
-              <strong style={{ color: 'var(--primary)' }}>สื่องานสอน G21</strong> ได้เลยครับ
+          {/* Contact Support Info - อัปเดตปุ่ม LINE OA */}
+          <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(0, 195, 0, 0.05)', border: '1px solid #00c300', borderRadius: '1rem', textAlign: 'center' }}>
+            <div style={{ width: '48px', height: '48px', background: '#00c300', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+              <svg style={{ width: '28px', height: '28px', color: 'white' }} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M24 10.304c0-5.369-5.383-9.738-12-9.738-6.616 0-12 4.369-12 9.738 0 4.814 3.53 8.871 8.435 9.582.336.071.79.227.905.518.106.262.035.666-.012 1.054-.06.467-.384 2.29-.467 2.808-.106.666.49 1.103.951.815.356-.226 2.083-1.258 5.485-3.805 3.123-2.33 4.704-5.357 4.704-8.497z"/>
+              </svg>
+            </div>
+            <p style={{ color: 'white', fontSize: '1.05rem', marginBottom: '1rem', fontWeight: 500 }}>
+              ติดปัญหาหรือต้องการความช่วยเหลือ?
             </p>
+            <a 
+              href="https://line.me/R/ti/p/@044aapxp" 
+              target="_blank" 
+              rel="noreferrer"
+              className="btn" 
+              style={{ display: 'inline-block', width: '100%', background: '#00c300', color: 'white', padding: '0.75rem', borderRadius: '0.5rem', fontWeight: 600, fontSize: '1rem', border: 'none', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(0, 195, 0, 0.3)' }}
+            >
+              ติดต่อแอดมินผ่าน LINE
+            </a>
           </div>
         </div>
       </div>
