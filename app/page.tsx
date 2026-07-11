@@ -1,14 +1,6 @@
-'use client';
 import Link from 'next/link';
 
 export default function Home() {
-  const featuredProducts = [
-    { id: 'sci-p1', title: 'แผนการสอน วิทยาศาสตร์ ป.1 (หลักสูตร 2568)', price: 239, category: 'วิทยาศาสตร์', image: 'https://placehold.co/600x400/0A2B1D/D4AF37?text=SCI+P1' },
-    { id: 'soc-p2', title: 'แผนการสอน สังคมฯ ป.2 (หลักสูตร 2568)', price: 199, category: 'สังคมและความเป็นพลเมือง', image: 'https://placehold.co/600x400/0A2B1D/D4AF37?text=SOC+P2' },
-    { id: 'eco-p3', title: 'แผนการสอน เศรษฐศาสตร์ ป.3 (หลักสูตร 2568)', price: 189, category: 'เศรษฐกิจและการเงิน', image: 'https://placehold.co/600x400/0A2B1D/D4AF37?text=ECO+P3' },
-    { id: 'eng-p1', title: 'แผนการสอน ภาษาอังกฤษ ป.1 (หลักสูตร 2568)', price: 399, category: 'ภาษาอังกฤษ', image: 'https://placehold.co/600x400/0A2B1D/D4AF37?text=ENG+P1' },
-  ];
-
   return (
     <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
       {/* Hero Section */}
@@ -19,7 +11,7 @@ export default function Home() {
         position: 'relative',
         overflow: 'hidden'
       }}>
-        {/* Decorative Tech Rings (Simulating the cover image background) */}
+        {/* Decorative Tech Rings */}
         <div style={{ position: 'absolute', top: '50%', left: '10%', transform: 'translateY(-50%)', width: '300px', height: '300px', borderRadius: '50%', border: '1px solid rgba(212, 175, 55, 0.2)', boxShadow: '0 0 50px rgba(212, 175, 55, 0.1)' }}></div>
         <div style={{ position: 'absolute', top: '50%', left: '5%', transform: 'translateY(-50%)', width: '400px', height: '400px', borderRadius: '50%', border: '1px dashed rgba(212, 175, 55, 0.1)' }}></div>
         
@@ -66,36 +58,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section style={{ padding: '5rem 0' }}>
-        <div className="container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
-            <div>
-              <h2 style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>แผนการสอนแนะนำ</h2>
-              <p style={{ color: 'var(--text-muted)' }}>จัดเซ็ตคอมโบสุดคุ้ม ประหยัดเวลาอาจารย์ 100%</p>
-            </div>
-            <Link href="/store" style={{ color: 'var(--primary)', fontWeight: 600 }}>ดูวิชาทั้งหมด &rarr;</Link>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
-            {featuredProducts.map((product, index) => (
-              <a href={`/store/${product.id.split('-')[0]}`} key={product.id} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
-                <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', animation: `slideUp ${0.5 + index * 0.1}s ease-out`, height: '100%', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 10px 20px rgba(212,175,55,0.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
-                  <div style={{ height: '200px', backgroundImage: `url(${product.image})`, backgroundSize: 'cover', backgroundPosition: 'center', borderBottom: '1px solid var(--border-color)', borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem' }}></div>
-                  <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <span style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 600, marginBottom: '0.5rem' }}>{product.category}</span>
-                    <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', flex: 1 }}>{product.title}</h3>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
-                      <span style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)' }}>฿{product.price}</span>
-                      <span className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>ดูรายละเอียด</span>
-                    </div>
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
