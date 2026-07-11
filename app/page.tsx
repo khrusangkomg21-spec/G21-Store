@@ -1,6 +1,13 @@
 import Link from 'next/link';
 
 export default function Home() {
+  const featuredProducts = [
+    { id: 'sci-p1', title: 'แผนการสอน วิทยาศาสตร์ ป.1 (หลักสูตร 2568)', price: 239, category: 'วิทยาศาสตร์', image: 'https://placehold.co/600x400/0A2B1D/D4AF37?text=SCI+P1' },
+    { id: 'soc-p2', title: 'แผนการสอน สังคมฯ ป.2 (หลักสูตร 2568)', price: 199, category: 'สังคมและความเป็นพลเมือง', image: 'https://placehold.co/600x400/0A2B1D/D4AF37?text=SOC+P2' },
+    { id: 'eco-p3', title: 'แผนการสอน เศรษฐศาสตร์ ป.3 (หลักสูตร 2568)', price: 189, category: 'เศรษฐกิจและการเงิน', image: 'https://placehold.co/600x400/0A2B1D/D4AF37?text=ECO+P3' },
+    { id: 'eng-p1', title: 'แผนการสอน ภาษาอังกฤษ ป.1 (หลักสูตร 2568)', price: 399, category: 'ภาษาอังกฤษ', image: 'https://placehold.co/600x400/0A2B1D/D4AF37?text=ENG+P1' },
+  ];
+
   return (
     <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
       {/* Hero Section */}
@@ -11,10 +18,7 @@ export default function Home() {
         position: 'relative',
         overflow: 'hidden'
       }}>
-        {/* Decorative Tech Rings */}
-        <div style={{ position: 'absolute', top: '50%', left: '10%', transform: 'translateY(-50%)', width: '300px', height: '300px', borderRadius: '50%', border: '1px solid rgba(212, 175, 55, 0.2)', boxShadow: '0 0 50px rgba(212, 175, 55, 0.1)' }}></div>
-        <div style={{ position: 'absolute', top: '50%', left: '5%', transform: 'translateY(-50%)', width: '400px', height: '400px', borderRadius: '50%', border: '1px dashed rgba(212, 175, 55, 0.1)' }}></div>
-        
+
         <div className="container" style={{ position: 'relative', zIndex: 10 }}>
           <div style={{ display: 'inline-block', padding: '0.5rem 1.5rem', border: '1px solid var(--primary)', borderRadius: '99px', color: 'var(--primary)', marginBottom: '2rem', fontSize: '0.875rem', letterSpacing: '1px' }}>
             THAILAND CURRICULUM HUB 2568
