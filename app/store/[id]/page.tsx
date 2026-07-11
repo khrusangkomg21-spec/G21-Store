@@ -454,4 +454,18 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
                 <h2 style={{ fontSize: '2.5rem', lineHeight: 1, color: 'var(--text-main)' }}>฿{activePackage?.price}</h2>
               </div>
               <button 
-                onClick={() => handleAddToCart(activePackage
+                onClick={() => handleAddToCart(activePackage)}
+                className="btn btn-primary" 
+                style={{ padding: '1rem 2.5rem', fontSize: '1.25rem', opacity: isReady ? 1 : 0.5, cursor: isReady ? 'pointer' : 'not-allowed' }}
+                disabled={!isReady}
+              >
+                {isReady ? 'เพิ่มลงตะกร้า' : 'เร็วๆ นี้ (Coming Soon)'}
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
