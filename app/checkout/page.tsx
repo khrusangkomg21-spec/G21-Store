@@ -14,6 +14,7 @@ export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [copyStatus, setCopyStatus] = useState('');
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,6 +31,12 @@ export default function Checkout() {
       const objectUrl = URL.createObjectURL(file);
       setSlipPreview(objectUrl);
     }
+  };
+
+  const handleCopyAccount = () => {
+    navigator.clipboard.writeText('020434775829');
+    setCopyStatus('คัดลอกสำเร็จ!');
+    setTimeout(() => setCopyStatus(''), 2000);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,10 +125,32 @@ export default function Checkout() {
         <div className="glass-card" style={{ padding: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>บัญชีธนาคารสำหรับโอนเงิน</h2>
           
-          <div style={{ background: 'rgba(59, 130, 246, 0.1)', border: '1px solid var(--primary)', borderRadius: '1rem', padding: '1.5rem', marginBottom: '2rem', textAlign: 'center' }}>
-            <p style={{ fontSize: '1.2rem', color: 'white', marginBottom: '0.5rem' }}>ธนาคารกสิกรไทย</p>
-            <h3 style={{ fontSize: '2rem', letterSpacing: '2px', color: 'var(--primary)', marginBottom: '0.5rem' }}>123-4-56789-0</h3>
-            <p style={{ color: 'var(--text-muted)' }}>ชื่อบัญชี: บจก. แผนการสอน 21</p>
+          {/* Bank Account Details */}
+          <div style={{ background: 'rgba(236, 72, 153, 0.05)', border: '1px solid #eb1e63', borderRadius: '1rem', padding: '1.5rem', marginBottom: '2rem', textAlign: 'center', position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <div style={{ width: '24px', height: '24px', background: '#eb1e63', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px', fontWeight: 'bold' }}>อ</div>
+              <p style={{ fontSize: '1.2rem', color: '#eb1e63', fontWeight: 600, margin: 0 }}>ธนาคารออมสิน</p>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+              <h3 style={{ fontSize: '2.2rem', letterSpacing: '2px', color: 'white', margin: 0 }}>020434775829</h3>
+              <button 
+                type="button"
+                onClick={handleCopyAccount}
+                className="btn btn-outline"
+                style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', borderColor: '#eb1e63', color: '#eb1e63', minWidth: '100px', background: copyStatus ? 'rgba(236, 72, 153, 0.1)' : 'transparent' }}
+              >
+                {copyStatus || '📋 คัดลอก'}
+              </button>
+            </div>
+            
+            <p style={{ color: 'white', fontSize: '1.1rem', marginBottom: '1rem' }}>ชื่อบัญชี: <span style={{ fontWeight: 700 }}>นางสาวอัจฉรา จุติอมรเลิศ</span></p>
+            
+            <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px dashed #ef4444', padding: '1rem', borderRadius: '0.5rem' }}>
+              <p style={{ color: '#ef4444', fontWeight: 700, margin: 0, fontSize: '1.05rem', lineHeight: '1.5' }}>
+                ⚠️ กรุณาตรวจสอบชื่อบัญชีให้ตรงกับ <br/>"นางสาวอัจฉรา จุติอมรเลิศ" <br/>ชื่อนี้ชื่อเดียวเท่านั้น!
+              </p>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
