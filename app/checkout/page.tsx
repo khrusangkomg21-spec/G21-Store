@@ -39,7 +39,6 @@ export default function Checkout() {
     setTimeout(() => setCopyStatus(''), 2000);
   };
 
-  // ฟังก์ชันย่อขนาดและแปลงรูปให้เป็น Base64
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -69,7 +68,7 @@ export default function Checkout() {
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.6); // บีบอัดเป็น JPEG ขนาดเบาๆ
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
           resolve(dataUrl);
         };
         img.onerror = (error) => reject(error);
@@ -202,7 +201,6 @@ export default function Checkout() {
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             
-            {/* For Guest */}
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>
                 อีเมลสำหรับรับลิงก์ไฟล์ (หากไม่ได้ล็อกอิน)
@@ -216,7 +214,6 @@ export default function Checkout() {
               />
             </div>
 
-            {/* File Upload */}
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>
                 แนบสลิปโอนเงิน (สลิปเต็มใบ) *
@@ -248,6 +245,18 @@ export default function Checkout() {
                 style={{ display: 'none' }} 
               />
             </div>
+
+            {/* กล่องข้อความแจ้งเวลาทำการ */}
+            <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid #f59e0b', padding: '1rem', borderRadius: '0.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+              <span style={{ fontSize: '1.5rem' }}>🌙</span>
+              <div>
+                <p style={{ color: '#f59e0b', fontWeight: 600, margin: '0 0 0.5rem 0' }}>เวลาทำการ: 08.00 - 22.00 น.</p>
+                <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>
+                  ทีมงานจะรีบตรวจสอบสลิปและจัดส่งไฟล์ให้ท่านทันทีในเวลาทำการ <br/>
+                  <span style={{ opacity: 0.8 }}>*หากโอนนอกเวลาทำการ จะได้รับลิงก์ในเช้าวันถัดไปครับ</span>
+                </p>
+              </div>
+            </div>
             
             {error && (
               <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #ef4444' }}>
@@ -255,7 +264,7 @@ export default function Checkout() {
               </div>
             )}
 
-            <button type="submit" className="btn btn-primary" style={{ padding: '1.25rem', fontSize: '1.25rem', marginTop: '1rem', width: '100%' }} disabled={isSubmitting}>
+            <button type="submit" className="btn btn-primary" style={{ padding: '1.25rem', fontSize: '1.25rem', marginTop: '0.5rem', width: '100%' }} disabled={isSubmitting}>
               {isSubmitting ? 'กำลังส่งข้อมูล...' : 'ยืนยันการชำระเงิน'}
             </button>
           </form>
