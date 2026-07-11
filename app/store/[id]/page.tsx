@@ -184,8 +184,8 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
 
       <div style={{ display: 'flex', gap: '4rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
         
-        <div style={{ flex: '1', minWidth: '350px' }}>
-          <div className="glass-card" style={{ height: '350px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at top right, #1A4731, var(--surface))', color: 'var(--primary)', marginBottom: '2rem' }}>
+        <div style={{ flex: '1', minWidth: 'min(100%, 350px)' }}>
+          <div className="glass-card" style={{ aspectRatio: '16/9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at top right, #1A4731, var(--surface))', color: 'var(--primary)', marginBottom: '2rem' }}>
             <div style={{ fontSize: '8rem', textShadow: '0 0 30px rgba(212,175,55,0.4)' }}>{subject.icon}</div>
             <h2 style={{ color: 'var(--text-main)', marginTop: '1rem', textAlign: 'center' }}>{subject.title.split(' ')[0]}</h2>
           </div>
@@ -228,7 +228,8 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
                   rel="noreferrer" 
                   style={{ 
                     display: 'block', 
-                    height: '150px', 
+                    width: '100%',
+                    aspectRatio: '16/9', 
                     backgroundImage: `url(${src})`, 
                     backgroundSize: 'cover', 
                     backgroundPosition: 'top center', 
@@ -254,7 +255,7 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        <div style={{ flex: '1.2', minWidth: '400px' }}>
+        <div style={{ flex: '1.2', minWidth: 'min(100%, 400px)' }}>
           <span style={{ color: 'var(--primary)', fontWeight: 600, letterSpacing: '1px' }}>หลักสูตรใหม่ 2568 (การประยุกต์ใช้ในชีวิตประจำวัน)</span>
           <h1 style={{ fontSize: '2.5rem', margin: '0.5rem 0 1.5rem' }}>{subject.title}</h1>
           
