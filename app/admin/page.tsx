@@ -2,80 +2,29 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import * as XLSX from 'xlsx';
 import { 
   getPendingOrders, 
   getCompletedOrders,
   approveOrder, 
   rejectOrder, 
   getAllProducts, 
-  updateProductLink 
+  updateProductLink,
+  getDashboardStats,
+  getAllCustomers,
+  importLegacyCustomers
 } from '@/app/actions/admin';
 
-// คอมโพเนนต์ย่อยสำหรับแต่ละแถวของวิชา เพื่อให้มีปุ่มบันทึกแยกกัน และไม่เด้งแจ้งเตือนกวนใจ
-function ProductRow({ product }: { product: any }) {
-  const [link, setLink] = useState(product.downloadUrl || '');
-  const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-
-  const handleSave = async () => {
-    setStatus('saving');
-    try {
-      await updateProductLink(product.id, link);
-      setStatus('saved');
-      // เมื่อกดบันทึกแล้ว จะเปลี่ยนเป็นปุ่มสีเขียว "✅ บันทึกแล้ว" ค้างไว้เลย ไม่มีหน้าต่างเด้งกวนใจ
-    } catch (e) {
-      alert('เกิดข้อผิดพลาดในการบันทึก รบกวนลองอีกครั้งครับ');
-      setStatus('idle');
-    }
-  };
-
-  // เช็คว่าผู้ใช้พิมพ์ลิงก์ใหม่ที่ต่างจากข้อมูลเดิมในระบบหรือไม่
-  const isChanged = link !== (product.downloadUrl || '');
-
-  return (
-    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-      <div style={{ flex: '1', minWidth: '200px' }}>
-        <div style={{ fontWeight: 600, color: 'white' }}>{product.title}</div>
-        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{product.description} (รหัส: {product.id})</div>
-      </div>
-      <div style={{ flex: '2', display: 'flex', gap: '0.5rem' }}>
-        <input 
-          type="url" 
-          value={link}
-          onChange={(e) => {
-            setLink(e.target.value);
-            setStatus('idle'); // รีเซ็ตสถานะปุ่มกลับมาให้กดบันทึกได้เวลาพิมพ์ใหม่
-          }}
-          placeholder="วางลิงก์ที่นี่ (เช่น https://1drv.ms/f/s!...)"
-          style={{ flex: '1', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
-        />
-        <button 
-          onClick={handleSave}
-          disabled={!isChanged && status !== 'saved'}
-          className="btn"
-          style={{ 
-            padding: '0 1.5rem', 
-            background: status === 'saved' ? '#10b981' : isChanged ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-            color: status === 'saved' ? 'white' : isChanged ? 'var(--bg-color)' : 'var(--text-muted)',
-            cursor: (!isChanged && status !== 'saved') ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s',
-            fontWeight: 600,
-            whiteSpace: 'nowrap'
-          }}
-        >
-          {status === 'saving' ? '⏳ กำลังบันทึก...' : status === 'saved' ? '✅ บันทึกแล้ว' : 'บันทึกลิงก์'}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'orders' | 'products'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'customers'>('orders');
+  const [stats, setStats] = useState({ pendingCount: 0, approvedToday: 0, salesToday: 0, salesMonth: 0 });
   const [pendingOrders, setPendingOrders] = useState<any[]>([]);
   const [completedOrders, setCompletedOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedSlip, setSelectedSlip] = useState<string | null>(null);
+  const [filterMonth, setFilterMonth] = useState<string>('all'); 
   
   const router = useRouter();
 
@@ -86,14 +35,20 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
+      const dbStats = await getDashboardStats();
+      setStats(dbStats);
+
       if (activeTab === 'orders') {
         const pending = await getPendingOrders();
         const completed = await getCompletedOrders();
         setPendingOrders(pending);
         setCompletedOrders(completed);
-      } else {
+      } else if (activeTab === 'products') {
         const prods = await getAllProducts();
         setProducts(prods);
+      } else if (activeTab === 'customers') {
+        const custs = await getAllCustomers();
+        setCustomers(custs);
       }
     } catch (error) {
       console.error(error);
@@ -118,6 +73,63 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleUpdateLink = async (productId: string, link: string) => {
+    await updateProductLink(productId, link);
+    alert('บันทึกลิงก์สำเร็จ!');
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws);
+        
+        const parsed = data.map((row: any) => ({
+          facebookName: row['Facebook'] || row['ชื่อเฟส'] || row['ชื่อเฟสบุ๊ค'] || row['facebookName'],
+          name: row['Name'] || row['ชื่อ-สกุลจริง'] || row['ชื่อ-สกุล'],
+          isVip: !!(row['VIP'] || row['isVip'] || row['vip'])
+        }));
+        
+        const res = await importLegacyCustomers(parsed);
+        if(res.success) {
+          alert(`นำเข้าข้อมูลสำเร็จ ${res.count} รายการ`);
+          fetchData();
+        }
+      } catch (err) {
+        alert('รูปแบบไฟล์ไม่ถูกต้อง หรือเกิดข้อผิดพลาด');
+      }
+    };
+    reader.readAsBinaryString(file);
+    e.target.value = '';
+  };
+
+  const handleExport = () => {
+    const ws = XLSX.utils.json_to_sheet(customers.map(c => ({
+      'ชื่อเฟสบุ๊ค': c.facebookName || '',
+      'ชื่อ-สกุลจริง': c.name || '',
+      'อีเมลในระบบ': c.email,
+      'VIP': c.isVip ? 'ใช่' : '-',
+      'วันที่สมัคร': new Date(c.createdAt).toLocaleDateString('th-TH')
+    })));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Customers");
+    XLSX.writeFile(wb, "G21_Customers.xlsx");
+  };
+
+  const filteredCompletedOrders = filterMonth === 'all' 
+    ? completedOrders 
+    : completedOrders.filter(order => {
+        const date = new Date(order.updatedAt);
+        const yyyymm = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        return yyyymm === filterMonth;
+      });
+
   if (isLoading) {
     return <div className="container" style={{ padding: '4rem 0', textAlign: 'center' }}>กำลังโหลดข้อมูล...</div>;
   }
@@ -126,8 +138,28 @@ export default function AdminDashboard() {
     <div className="container" style={{ padding: '2rem 0', animation: 'fadeIn 0.5s ease-out' }}>
       <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem', color: 'var(--primary)' }}>Admin Dashboard</h1>
       
+      {/* Summary Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid #fbbf24' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>รอตรวจสอบ</div>
+          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fbbf24' }}>{stats.pendingCount}</div>
+        </div>
+        <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid #10b981' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>อนุมัติวันนี้</div>
+          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#10b981' }}>{stats.approvedToday}</div>
+        </div>
+        <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--primary)' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>ยอดขายวันนี้</div>
+          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary)' }}>฿{stats.salesToday.toLocaleString()}</div>
+        </div>
+        <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid #8b5cf6' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>ยอดขายเดือนนี้</div>
+          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#8b5cf6' }}>฿{stats.salesMonth.toLocaleString()}</div>
+        </div>
+      </div>
+
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
         <button 
           className={`btn ${activeTab === 'orders' ? 'btn-primary' : ''}`}
           style={{ background: activeTab !== 'orders' ? 'rgba(255,255,255,0.1)' : undefined }}
@@ -142,21 +174,28 @@ export default function AdminDashboard() {
         >
           จัดการลิงก์ไฟล์งานสอน
         </button>
+        <button 
+          className={`btn ${activeTab === 'customers' ? 'btn-primary' : ''}`}
+          style={{ background: activeTab !== 'customers' ? 'rgba(255,255,255,0.1)' : undefined }}
+          onClick={() => setActiveTab('customers')}
+        >
+          จัดการฐานข้อมูลลูกค้า (Excel)
+        </button>
       </div>
 
       {/* Content */}
-      <div className="glass-card" style={{ padding: '2rem' }}>
+      <div className="glass-card" style={{ padding: '2rem', overflowX: 'auto' }}>
         
         {activeTab === 'orders' && (
           <div>
             <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#fbbf24' }}>รอตรวจสอบ ({pendingOrders.length})</h2>
-            
             <div style={{ overflowX: 'auto', marginBottom: '3rem' }}>
-              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', minWidth: '600px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                    <th style={{ padding: '1rem' }}>วัน/เวลาสั่งซื้อ</th>
                     <th style={{ padding: '1rem' }}>เลขที่คำสั่งซื้อ</th>
-                    <th style={{ padding: '1rem' }}>อีเมล / ผู้ใช้</th>
+                    <th style={{ padding: '1rem' }}>ผู้ใช้ / อีเมล</th>
                     <th style={{ padding: '1rem' }}>ยอดโอน</th>
                     <th style={{ padding: '1rem' }}>สลิป</th>
                     <th style={{ padding: '1rem' }}>จัดการ</th>
@@ -165,8 +204,9 @@ export default function AdminDashboard() {
                 <tbody>
                   {pendingOrders.map(order => (
                     <tr key={order.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <td style={{ padding: '1rem' }}>{new Date(order.createdAt).toLocaleString('th-TH')}</td>
                       <td style={{ padding: '1rem' }}>{order.orderNumber}</td>
-                      <td style={{ padding: '1rem' }}>{order.guestEmail || order.user?.email}</td>
+                      <td style={{ padding: '1rem' }}>{order.guestEmail || order.user?.facebookName || order.user?.email}</td>
                       <td style={{ padding: '1rem', color: 'var(--primary)', fontWeight: 600 }}>฿{order.totalAmount}</td>
                       <td style={{ padding: '1rem' }}>
                         <button 
@@ -177,10 +217,10 @@ export default function AdminDashboard() {
                           ดูสลิป
                         </button>
                       </td>
-                      <td style={{ padding: '1rem' }}>
+                      <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
                         <button 
                           className="btn btn-primary" 
-                          style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', marginRight: '0.5rem' }}
+                          style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
                           onClick={() => handleApprove(order.id)}
                         >
                           อนุมัติ
@@ -197,33 +237,58 @@ export default function AdminDashboard() {
                   ))}
                   {pendingOrders.length === 0 && (
                     <tr>
-                      <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>ไม่มีคำสั่งซื้อที่รอตรวจสอบ</td>
+                      <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>ไม่มีคำสั่งซื้อที่รอตรวจสอบ</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
 
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#10b981' }}>อนุมัติแล้ว ({completedOrders.length})</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <h2 style={{ fontSize: '1.5rem', color: '#10b981' }}>อนุมัติแล้ว (ประวัติย้อนหลัง)</h2>
+              <select 
+                className="btn"
+                style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--border-color)', padding: '0.5rem 1rem' }}
+                value={filterMonth}
+                onChange={(e) => setFilterMonth(e.target.value)}
+              >
+                <option value="all">ทั้งหมด (รายการล่าสุด)</option>
+                {Array.from({length: 12}).map((_, i) => {
+                  const d = new Date();
+                  d.setMonth(d.getMonth() - i);
+                  const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                  const label = d.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+                  return <option key={val} value={val} style={{ color: 'black' }}>{label}</option>
+                })}
+              </select>
+            </div>
+            
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', minWidth: '600px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                    <th style={{ padding: '1rem' }}>วัน/เวลาที่อนุมัติ</th>
                     <th style={{ padding: '1rem' }}>เลขที่คำสั่งซื้อ</th>
-                    <th style={{ padding: '1rem' }}>อีเมล / ผู้ใช้</th>
+                    <th style={{ padding: '1rem' }}>ผู้ใช้ / อีเมล</th>
                     <th style={{ padding: '1rem' }}>ยอดโอน</th>
                     <th style={{ padding: '1rem' }}>สถานะ</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {completedOrders.map(order => (
+                  {filteredCompletedOrders.map(order => (
                     <tr key={order.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <td style={{ padding: '1rem' }}>{new Date(order.updatedAt).toLocaleString('th-TH')}</td>
                       <td style={{ padding: '1rem' }}>{order.orderNumber}</td>
-                      <td style={{ padding: '1rem' }}>{order.guestEmail || order.user?.email}</td>
+                      <td style={{ padding: '1rem' }}>{order.guestEmail || order.user?.facebookName || order.user?.email}</td>
                       <td style={{ padding: '1rem', color: 'var(--primary)', fontWeight: 600 }}>฿{order.totalAmount}</td>
                       <td style={{ padding: '1rem', color: '#10b981' }}>อนุมัติแล้ว</td>
                     </tr>
                   ))}
+                  {filteredCompletedOrders.length === 0 && (
+                    <tr>
+                      <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>ไม่มีข้อมูลในเดือนที่เลือก</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -232,36 +297,87 @@ export default function AdminDashboard() {
 
         {activeTab === 'products' && (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h2 style={{ fontSize: '1.5rem' }}>กำหนดลิงก์ดาวน์โหลด (OneDrive/Google Drive)</h2>
-              <button 
-                onClick={async () => {
-                  if (confirm('ยืนยันการซิงค์รายวิชาทั้งหมดเข้าระบบ? (จะใช้เวลาสักครู่)')) {
-                    try {
-                      const res = await fetch('/api/admin/sync-products');
-                      const data = await res.json();
-                      alert(data.message || 'ซิงค์ข้อมูลสำเร็จ!');
-                      window.location.reload();
-                    } catch (e) {
-                      alert('เกิดข้อผิดพลาดในการซิงค์ข้อมูล');
-                    }
-                  }
-                }}
-                className="btn btn-outline"
-                style={{ padding: '0.5rem 1rem', borderColor: 'var(--primary)', color: 'var(--primary)' }}
-              >
-                🔄 ดึงรายชื่อวิชาทั้งหมดเข้าระบบ
-              </button>
-            </div>
+             <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>กำหนดลิงก์ดาวน์โหลด (OneDrive/Google Drive)</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>นำลิงก์แชร์ไฟล์งานมาวางให้ตรงกับแพ็กเกจ เพื่อให้ลูกค้าดาวน์โหลดอัตโนมัติเมื่ออนุมัติสลิป</p>
             
             <div style={{ display: 'grid', gap: '1rem' }}>
               {products.map(product => (
-                <ProductRow key={product.id} product={product} />
+                <div key={product.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)', flexWrap: 'wrap' }}>
+                  <div style={{ flex: '1', minWidth: '200px' }}>
+                    <div style={{ fontWeight: 600, color: 'white' }}>{product.title}</div>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{product.description} (รหัส: {product.id})</div>
+                  </div>
+                  <input 
+                    type="url" 
+                    defaultValue={product.downloadUrl || ''}
+                    placeholder="วางลิงก์ที่นี่ (เช่น https://1drv.ms/f/s!...)"
+                    style={{ flex: '2', minWidth: '250px', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                    onBlur={(e) => {
+                      if(e.target.value !== product.downloadUrl) {
+                        handleUpdateLink(product.id, e.target.value);
+                      }
+                    }}
+                  />
+                </div>
               ))}
             </div>
           </div>
         )}
+
+        {activeTab === 'customers' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1.5rem' }}>ฐานข้อมูลลูกค้าเก่า/ใหม่ ({customers.length} รายการ)</h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                  การนำเข้าไฟล์ Excel ตั้งชื่อหัวคอลัมน์ว่า: "ชื่อเฟส", "ชื่อ-สกุลจริง", และ "VIP" (ใส่ช่องนั้นว่า TRUE ถ้าเป็น VIP)
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <label className="btn btn-outline" style={{ cursor: 'pointer', borderColor: '#10b981', color: '#10b981', padding: '0.5rem 1rem' }}>
+                  📥 นำเข้า Excel
+                  <input type="file" accept=".xlsx, .xls" hidden onChange={handleFileUpload} />
+                </label>
+                <button className="btn btn-primary" onClick={handleExport} style={{ padding: '0.5rem 1rem' }}>
+                  📤 ส่งออก Excel
+                </button>
+              </div>
+            </div>
+
+            <div style={{ overflowX: 'auto', marginTop: '2rem' }}>
+              <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', minWidth: '600px' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                    <th style={{ padding: '1rem' }}>วันที่เพิ่มเข้าสู่ระบบ</th>
+                    <th style={{ padding: '1rem' }}>ชื่อเฟสบุ๊ค</th>
+                    <th style={{ padding: '1rem' }}>ชื่อ-สกุลจริง</th>
+                    <th style={{ padding: '1rem' }}>สถานะ VIP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customers.map(c => (
+                    <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <td style={{ padding: '1rem' }}>{new Date(c.createdAt).toLocaleDateString('th-TH')}</td>
+                      <td style={{ padding: '1rem' }}>{c.facebookName || '-'}</td>
+                      <td style={{ padding: '1rem' }}>{c.name || '-'}</td>
+                      <td style={{ padding: '1rem' }}>
+                        {c.isVip ? (
+                          <span style={{ background: 'linear-gradient(90deg, #4f46e5, #312e81)', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.8rem' }}>VIP</span>
+                        ) : '-'}
+                      </td>
+                    </tr>
+                  ))}
+                  {customers.length === 0 && (
+                    <tr>
+                      <td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>ยังไม่มีข้อมูลลูกค้า</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
       </div>
 
       {/* Slip Modal */}
