@@ -2,10 +2,10 @@ import type { Metadata } from 'next'
 import { Prompt } from 'next/font/google'
 import './globals.css'
 import Link from 'next/link'
+import { getSession, logout } from './actions/auth'
+import { redirect } from 'next/navigation'
 
 const prompt = Prompt({ subsets: ['thai', 'latin'], weight: ['300', '400', '500', '600', '700'] })
-
-import { getSession } from './actions/auth'
 
 export const metadata: Metadata = {
   title: 'G21 คลังสื่องานสอน | รองรับหลักสูตรใหม่ 2568',
@@ -38,6 +38,17 @@ export default async function RootLayout({
                   )}
                   <span style={{ color: 'var(--border-color)' }}>|</span>
                   <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{session.email as string}</span>
+                  
+                  {/* ปุ่มออกจากระบบ */}
+                  <form action={async () => {
+                    'use server';
+                    await logout();
+                    redirect('/login');
+                  }}>
+                    <button type="submit" style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', padding: '0 0.5rem' }} className="hover:opacity-80">
+                      ออกจากระบบ
+                    </button>
+                  </form>
                 </>
               ) : (
                 <>
