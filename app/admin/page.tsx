@@ -25,6 +25,7 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedSlip, setSelectedSlip] = useState<string | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>('all'); 
+  const [showToast, setShowToast] = useState(false); // เพิ่มระบบป้ายแจ้งเตือน
   
   const router = useRouter();
 
@@ -73,9 +74,11 @@ export default function AdminDashboard() {
     }
   };
 
+  // เปลี่ยนจาก alert() น่ารำคาญ เป็นป้ายแจ้งเตือนสวยๆ
   const handleUpdateLink = async (productId: string, link: string) => {
     await updateProductLink(productId, link);
-    alert('บันทึกลิงก์สำเร็จ!');
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000); // หายไปเองใน 3 วินาที
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,7 +138,15 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="container" style={{ padding: '2rem 0', animation: 'fadeIn 0.5s ease-out' }}>
+    <div className="container" style={{ padding: '2rem 0', animation: 'fadeIn 0.5s ease-out', position: 'relative' }}>
+      
+      {/* ป้ายแจ้งเตือนสีเขียว เด้งลงมาจากด้านบน */}
+      {showToast && (
+        <div style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: 'white', padding: '1rem 2rem', borderRadius: '0.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 1000, display: 'flex', alignItems: 'center', gap: '0.5rem', animation: 'slideDown 0.3s ease-out' }}>
+          <span style={{ fontSize: '1.25rem' }}>✅</span> บันทึกข้อมูลสำเร็จ!
+        </div>
+      )}
+
       <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem', color: 'var(--primary)' }}>Admin Dashboard</h1>
       
       {/* Summary Cards */}
