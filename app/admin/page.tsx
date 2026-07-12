@@ -92,6 +92,16 @@ export default function AdminDashboard() {
         const ws = wb.Sheets[wsname];
         const data = XLSX.utils.sheet_to_json(ws);
         
+        const isTruthy = (val: any) => {
+          if (val === true) return true;
+          if (typeof val === 'string') {
+            const s = val.trim().toLowerCase();
+            return s === 'true' || s === 'yes' || s === '1' || s === 'vip' || s === 'ใช่' || s === 'ok' || s === 'v' || s === 't';
+          }
+          if (typeof val === 'number') return val === 1;
+          return false;
+        };
+
         const parsed = data.map((rawRow: any) => {
           // Clean up headers (trim spaces)
           const row: any = {};
@@ -101,16 +111,20 @@ export default function AdminDashboard() {
             }
           }
           
-          let fullName = row['Name'] || row['ชื่อ-สกุลจริง'] || row['ชื่อ-สกุล'];
-          if (!fullName && row['ชื่อ']) {
-             fullName = row['นามสกุล'] ? `${row['ชื่อ']} ${row['นามสกุล']}` : row['ชื่อ'];
+          let fullName = row['Name'] || row['ชื่อ-สกุลจริง'] || row['ชื่อ-สกุล'] || row['ชื่อจริง-นามสกุล'] || row['ชื่อนามสกุล'];
+          const firstName = row['ชื่อ'] || row['ชื่อจริง'] || row['First Name'] || row['FirstName'] || row['ชื่อลูกค้า'];
+          const lastName = row['นามสกุล'] || row['Last Name'] || row['LastName'] || row['สกุล'];
+          
+          if (!fullName && firstName) {
+             fullName = lastName ? `${firstName} ${lastName}` : firstName;
           }
+          
           return {
-            facebookName: row['Facebook'] || row['ชื่อเฟส'] || row['ชื่อเฟสบุ๊ค'] || row['facebookName'],
+            facebookName: row['Facebook'] || row['ชื่อเฟส'] || row['ชื่อเฟสบุ๊ค'] || row['facebookName'] || row['fb'] || row['FB'],
             name: fullName,
-            vipP1ToP3: !!(row['VIP_P1-3'] || row['vipP1ToP3'] || row['VIP']),
-            vipP4ToP6: !!(row['VIP_P4-6'] || row['vipP4ToP6']),
-            legacyPackages: row['สินค้าที่เคยซื้อ'] || row['แพ็กเกจ'] || row['Packages'] || row['packages'] || null
+            vipP1ToP3: isTruthy(row['VIP_P1-3']) || isTruthy(row['vipP1ToP3']) || isTruthy(row['VIP']),
+            vipP4ToP6: isTruthy(row['VIP_P4-6']) || isTruthy(row['vipP4ToP6']),
+            legacyPackages: row['สินค้าที่เคยซื้อ'] || row['แพ็กเกจ'] || row['Packages'] || row['packages'] || row['แพคเกจ'] || row['รหัสสินค้า'] || null
           };
         });
         
