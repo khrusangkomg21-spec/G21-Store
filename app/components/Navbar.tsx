@@ -22,6 +22,9 @@ export default function Navbar({ session }: { session: any }) {
           {session ? (
             <>
               <Link href="/my-files" style={{ fontWeight: 500, color: 'var(--primary)', transition: 'color 0.2s' }} className="hover:text-primary">ไฟล์ของฉัน</Link>
+              {session.isVip && (
+                <Link href="/vip" style={{ fontWeight: 600, color: '#facc15', transition: 'color 0.2s' }} className="hover:text-[#f59e0b]">👑 ห้อง VIP</Link>
+              )}
               {session.role === 'ADMIN' && (
                 <Link href="/admin" style={{ fontWeight: 600, color: '#fbbf24', transition: 'color 0.2s' }}>Admin</Link>
               )}

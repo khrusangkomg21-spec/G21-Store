@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { notFound } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { getProductsByCategory } from '@/app/actions/product';
@@ -15,8 +15,8 @@ const subjectDb: Record<string, any> = {
   eng: { title: 'ภาษาอังกฤษ (English)', icon: '🇬🇧' },
 };
 
-export default function ProductDetails({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function ProductDetails({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { addToCart } = useCart();
   const subject = subjectDb[id];
   

@@ -9,8 +9,9 @@ const subjectDb: Record<string, any> = {
   eng: { title: 'ภาษาอังกฤษ (English)', icon: '🇬🇧', desc: 'แผนการสอนภาษาอังกฤษ ประถม 1-6' },
 };
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const subject = subjectDb[params.id];
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const subject = subjectDb[id];
   
   if (!subject) {
     return {

@@ -95,7 +95,7 @@ export async function register(formData: FormData) {
     }
 
     // Automatically log in after registration
-    await setSession(user.id, user.email, user.role);
+    await setSession(user.id, user.email, user.role, user.isVip);
 
     return { success: true };
   } catch (error) {
@@ -123,7 +123,7 @@ export async function login(formData: FormData) {
       return { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' };
     }
 
-    await setSession(user.id, user.email, user.role);
+    await setSession(user.id, user.email, user.role, user.isVip);
 
     return { success: true };
   } catch (error) {
@@ -150,9 +150,9 @@ export async function getSession() {
   }
 }
 
-async function setSession(userId: string, email: string, role: string) {
+async function setSession(userId: string, email: string, role: string, isVip: boolean = false) {
   const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-  const session = await new SignJWT({ userId, email, role })
+  const session = await new SignJWT({ userId, email, role, isVip })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
