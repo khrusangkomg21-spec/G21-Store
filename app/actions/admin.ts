@@ -180,8 +180,13 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
     
     // Find existing from our pre-fetched list
     let existing = null;
-    if (fbName) existing = existingUsers.find(u => u.facebookName === fbName);
-    if (!existing && realName) existing = existingUsers.find(u => u.name === realName);
+    if (fbName) {
+      // 1. Strict match by Facebook Name (Primary Identifier)
+      existing = existingUsers.find(u => u.facebookName === fbName);
+    } else if (realName) {
+      // 2. Fallback to matching by Real Name ONLY IF Facebook Name is missing entirely
+      existing = existingUsers.find(u => u.name === realName);
+    }
     
     if (!existing) {
       creates.push({

@@ -111,22 +111,32 @@ export default function AdminDashboard() {
             }
           }
           
-          let fullName = row['Name'] || row['ชื่อ-สกุลจริง'] || row['ชื่อ-สกุล'] || row['ชื่อจริง-นามสกุล'] || row['ชื่อนามสกุล'];
-          const firstName = row['ชื่อ'] || row['ชื่อจริง'] || row['First Name'] || row['FirstName'] || row['ชื่อลูกค้า'];
-          const lastName = row['นามสกุล'] || row['Last Name'] || row['LastName'] || row['สกุล'];
+          // Find keys dynamically to handle any typos or spacing
+          const keys = Object.keys(row);
+          const fbKey = keys.find(k => k.includes('เฟส') || k.toLowerCase().includes('facebook') || k.toLowerCase() === 'fb');
+          const firstNameKey = keys.find(k => (k.includes('ชื่อ') && !k.includes('เฟส') && !k.includes('สกุล') && !k.includes('นาม')) || k.toLowerCase().includes('first'));
+          const lastNameKey = keys.find(k => k.includes('สกุล') || k.toLowerCase().includes('last'));
+          const fullNameKey = keys.find(k => (k.includes('ชื่อ') && k.includes('สกุล') && !k.includes('เฟส')) || k.toLowerCase().includes('name') && !k.toLowerCase().includes('first') && !k.toLowerCase().includes('last') && !k.toLowerCase().includes('fb') && !k.toLowerCase().includes('facebook'));
+          const vip13Key = keys.find(k => k.toLowerCase().includes('vip') && (k.includes('1-3') || k.includes('13') || k.includes('p1') || k.includes('p3')));
+          const vip46Key = keys.find(k => k.toLowerCase().includes('vip') && (k.includes('4-6') || k.includes('46')));
+          const pkgKey = keys.find(k => k.includes('แพ็ก') || k.includes('แพค') || k.toLowerCase().includes('package') || k.includes('รหัส'));
+
+          let fullName = fullNameKey ? row[fullNameKey] : undefined;
+          const firstName = firstNameKey ? row[firstNameKey] : undefined;
+          const lastName = lastNameKey ? row[lastNameKey] : undefined;
           
           if (!fullName && firstName) {
              fullName = lastName ? `${firstName} ${lastName}` : firstName;
           }
           
           return {
-            facebookName: row['Facebook'] || row['ชื่อเฟส'] || row['ชื่อเฟสบุ๊ค'] || row['facebookName'] || row['fb'] || row['FB'],
+            facebookName: fbKey ? row[fbKey] : undefined,
             name: fullName,
             firstName: firstName || undefined,
             lastName: lastName || undefined,
-            vipP1ToP3: isTruthy(row['VIP_P1-3']) || isTruthy(row['vipP1ToP3']) || isTruthy(row['VIP']),
-            vipP4ToP6: isTruthy(row['VIP_P4-6']) || isTruthy(row['vipP4ToP6']),
-            legacyPackages: row['สินค้าที่เคยซื้อ'] || row['แพ็กเกจ'] || row['Packages'] || row['packages'] || row['แพคเกจ'] || row['รหัสสินค้า'] || null
+            vipP1ToP3: vip13Key ? isTruthy(row[vip13Key]) : false,
+            vipP4ToP6: vip46Key ? isTruthy(row[vip46Key]) : false,
+            legacyPackages: pkgKey ? row[pkgKey] : null
           };
         });
         
