@@ -153,8 +153,8 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
   await checkAdmin();
   
   // 1. Prepare fast lookups
-  const fbNames = customers.map(c => c.facebookName?.trim()).filter(Boolean) as string[];
-  const realNames = customers.map(c => c.name?.trim()).filter(Boolean) as string[];
+  const fbNames = customers.map(c => c.facebookName ? String(c.facebookName).trim() : '').filter(Boolean);
+  const realNames = customers.map(c => c.name ? String(c.name).trim() : '').filter(Boolean);
   
   // Fetch ALL existing in one go (prevents Vercel 10s timeout!)
   const existingUsers = await prisma.user.findMany({
@@ -171,10 +171,10 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
   const creates = [];
 
   for (const cust of customers) {
-    const fbName = cust.facebookName?.trim();
-    const realName = cust.name?.trim();
-    const fName = cust.firstName?.trim();
-    const lName = cust.lastName?.trim();
+    const fbName = cust.facebookName ? String(cust.facebookName).trim() : undefined;
+    const realName = cust.name ? String(cust.name).trim() : undefined;
+    const fName = cust.firstName ? String(cust.firstName).trim() : undefined;
+    const lName = cust.lastName ? String(cust.lastName).trim() : undefined;
     
     if (!fbName && !realName) continue;
     
@@ -233,20 +233,36 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
       const shouldUpdateLName = lName && !existing.lastName;
       
       if (shouldUpdateVipP1 || shouldUpdateVipP4 || shouldUpdatePackages || shouldUpdateName || shouldUpdateFName || shouldUpdateLName || (!existing.isVip && cust.vipP1ToP3)) {
-        updates.push(
-          prisma.user.update({
-            where: { id: existing.id },
-            data: { 
-              isVip: cust.vipP1ToP3 || existing.isVip,
-              vipP1ToP3: cust.vipP1ToP3 || existing.vipP1ToP3,
-              vipP4ToP6: cust.vipP4ToP6 || existing.vipP4ToP6,
-              name: existing.name || cust.name,
-              firstName: existing.firstName || fName,
-              lastName: existing.lastName || lName,
-              legacyPackages: newPackages || null
-            }
-          })
-        );
+        if (existing.id.startsWith('temp-')) {
+          // This is a duplicate row in the Excel file for a NEW user!
+          // We must mutate the pending create object instead of calling prisma.user.update
+          const createItem = creates.find(c => (fbName && c.facebookName === fbName) || (realName && c.name === realName));
+          if (createItem) {
+            createItem.isVip = cust.vipP1ToP3 || createItem.isVip;
+            createItem.vipP1ToP3 = cust.vipP1ToP3 || createItem.vipP1ToP3;
+            createItem.vipP4ToP6 = cust.vipP4ToP6 || createItem.vipP4ToP6;
+            createItem.name = createItem.name || cust.name || null;
+            createItem.firstName = createItem.firstName || fName || null;
+            createItem.lastName = createItem.lastName || lName || null;
+            createItem.legacyPackages = newPackages || null;
+          }
+        } else {
+          // This user actually exists in the database
+          updates.push(
+            prisma.user.update({
+              where: { id: existing.id },
+              data: { 
+                isVip: cust.vipP1ToP3 || existing.isVip,
+                vipP1ToP3: cust.vipP1ToP3 || existing.vipP1ToP3,
+                vipP4ToP6: cust.vipP4ToP6 || existing.vipP4ToP6,
+                name: existing.name || cust.name,
+                firstName: existing.firstName || fName || null,
+                lastName: existing.lastName || lName || null,
+                legacyPackages: newPackages || null
+              }
+            })
+          );
+        }
         imported++;
         
         // Update in-memory to prevent duplicate updates

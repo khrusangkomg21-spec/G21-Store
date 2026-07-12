@@ -146,8 +146,9 @@ export default function AdminDashboard() {
           alert(`นำเข้าข้อมูลสำเร็จ ${res.count} รายการ`);
           fetchData();
         }
-      } catch (err) {
-        alert('รูปแบบไฟล์ไม่ถูกต้อง หรือเกิดข้อผิดพลาด');
+      } catch (err: any) {
+        console.error("Import error:", err);
+        alert('เกิดข้อผิดพลาด: ' + (err.message || String(err)));
       }
     };
     reader.readAsBinaryString(file);
