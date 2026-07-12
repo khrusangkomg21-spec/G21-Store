@@ -203,6 +203,8 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
         id: `temp-${Date.now()}-${Math.random()}`,
         facebookName: fbName || null,
         name: realName || null,
+        firstName: fName || null,
+        lastName: lName || null,
         isVip: cust.vipP1ToP3,
         vipP1ToP3: cust.vipP1ToP3,
         vipP4ToP6: cust.vipP4ToP6,
