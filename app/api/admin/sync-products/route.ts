@@ -15,10 +15,6 @@ const subjects = [
 const grades = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
 
 const standardPackages = [
-  { id: 'combo-full', name: 'เซ็ตแผนปกติพร้อมใบงาน + แผนหน้าเดียว + หลังสอน', price: 239 },
-  { id: 'combo-normal', name: 'เซ็ตแผนปกติพร้อมใบงาน + หลังสอน', price: 199 },
-  { id: 'combo-onepage-worksheet', name: 'เซ็ตแผนหน้าเดียว + หลังสอน + ใบงาน', price: 189 },
-  { id: 'combo-onepage', name: 'เซ็ตแผนหน้าเดียว + หลังสอน', price: 159 },
   { id: 'single-normal', name: 'แผนการสอน 40 ชั่วโมง + ใบงานพร้อมเฉลย', price: 150 },
   { id: 'single-post', name: 'บันทึกหลังสอน (120 แบบ)', price: 99 },
   { id: 'single-onepage', name: 'แผนหน้าเดียว', price: 89 },
@@ -27,10 +23,6 @@ const standardPackages = [
 ];
 
 const englishPackages = [
-  { id: 'combo-full-eng', name: 'เซ็ตแผนปกติพร้อมใบงาน + แผนหน้าเดียว + หลังสอน', price: 399 },
-  { id: 'combo-normal-eng', name: 'เซ็ตแผนปกติพร้อมใบงาน + หลังสอน', price: 329 },
-  { id: 'combo-onepage-worksheet-eng', name: 'เซ็ตแผนหน้าเดียว + หลังสอน + ใบงาน', price: 299 },
-  { id: 'combo-onepage-eng', name: 'เซ็ตแผนหน้าเดียว + หลังสอน', price: 259 },
   { id: 'single-normal-eng', name: 'แผนการสอน 80 ชั่วโมง + ใบงานพร้อมเฉลย', price: 250 },
   { id: 'single-post-eng', name: 'บันทึกหลังสอน', price: 159 },
   { id: 'single-onepage-eng', name: 'แผนหน้าเดียว', price: 149 },
@@ -41,6 +33,13 @@ const englishPackages = [
 export async function GET() {
   try {
     let count = 0;
+
+    // Delete existing combo packages from database
+    await prisma.product.deleteMany({
+      where: {
+        id: { contains: 'combo' }
+      }
+    });
 
     // 1. Seed VIP Groups
     await prisma.product.upsert({

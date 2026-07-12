@@ -95,7 +95,8 @@ export default function AdminDashboard() {
         const parsed = data.map((row: any) => ({
           facebookName: row['Facebook'] || row['ชื่อเฟส'] || row['ชื่อเฟสบุ๊ค'] || row['facebookName'],
           name: row['Name'] || row['ชื่อ-สกุลจริง'] || row['ชื่อ-สกุล'],
-          isVip: !!(row['VIP'] || row['isVip'] || row['vip']),
+          vipP1ToP3: !!(row['VIP_P1-3'] || row['vipP1ToP3'] || row['VIP']),
+          vipP4ToP6: !!(row['VIP_P4-6'] || row['vipP4ToP6']),
           legacyPackages: row['สินค้าที่เคยซื้อ'] || row['แพ็กเกจ'] || row['Packages'] || row['packages'] || null
         }));
         
@@ -117,7 +118,8 @@ export default function AdminDashboard() {
       'ชื่อเฟสบุ๊ค': c.facebookName || '',
       'ชื่อ-สกุลจริง': c.name || '',
       'อีเมลในระบบ': c.email,
-      'VIP': c.isVip ? 'ใช่' : '-',
+      'VIP_P1-3': c.vipP1ToP3 || c.isVip ? 'TRUE' : '',
+      'VIP_P4-6': c.vipP4ToP6 ? 'TRUE' : '',
       'วันที่สมัคร': new Date(c.createdAt).toLocaleDateString('th-TH')
     })));
     const wb = XLSX.utils.book_new();
@@ -329,7 +331,7 @@ export default function AdminDashboard() {
               <div>
                 <h2 style={{ fontSize: '1.5rem' }}>ฐานข้อมูลลูกค้าเก่า/ใหม่ ({customers.length} รายการ)</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                  การนำเข้าไฟล์ Excel ตั้งชื่อหัวคอลัมน์ว่า: "ชื่อเฟส", "ชื่อ-สกุลจริง", และ "VIP" (ใส่ช่องนั้นว่า TRUE ถ้าเป็น VIP)
+                  การนำเข้าไฟล์ Excel ตั้งชื่อหัวคอลัมน์ว่า: "ชื่อเฟส", "ชื่อ-สกุลจริง", "VIP_P1-3", และ "VIP_P4-6" (ใส่ช่องนั้นว่า TRUE ถ้าเป็น VIP)
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '1rem' }}>
@@ -360,9 +362,13 @@ export default function AdminDashboard() {
                       <td style={{ padding: '1rem' }}>{c.facebookName || '-'}</td>
                       <td style={{ padding: '1rem' }}>{c.name || '-'}</td>
                       <td style={{ padding: '1rem' }}>
-                        {c.isVip ? (
-                          <span style={{ background: 'linear-gradient(90deg, #4f46e5, #312e81)', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.8rem' }}>VIP</span>
-                        ) : '-'}
+                        {(c.vipP1ToP3 || c.isVip) && (
+                          <span style={{ background: 'linear-gradient(90deg, #4f46e5, #312e81)', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.8rem', marginRight: '0.5rem' }}>P1-3</span>
+                        )}
+                        {c.vipP4ToP6 && (
+                          <span style={{ background: 'linear-gradient(90deg, #10b981, #047857)', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.8rem' }}>P4-6</span>
+                        )}
+                        {(!c.vipP1ToP3 && !c.isVip && !c.vipP4ToP6) && '-'}
                       </td>
                     </tr>
                   ))}

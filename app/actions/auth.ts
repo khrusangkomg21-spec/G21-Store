@@ -95,7 +95,7 @@ export async function register(formData: FormData) {
     }
 
     // Automatically log in after registration
-    await setSession(user.id, user.email, user.role, user.isVip);
+    await setSession(user.id, user.email, user.role, user.isVip, user.vipP1ToP3, user.vipP4ToP6);
 
     return { success: true };
   } catch (error) {
@@ -123,7 +123,7 @@ export async function login(formData: FormData) {
       return { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' };
     }
 
-    await setSession(user.id, user.email, user.role, user.isVip);
+    await setSession(user.id, user.email, user.role, user.isVip, user.vipP1ToP3, user.vipP4ToP6);
 
     return { success: true };
   } catch (error) {
@@ -150,9 +150,10 @@ export async function getSession() {
   }
 }
 
-async function setSession(userId: string, email: string, role: string, isVip: boolean = false) {
+async function setSession(userId: string, email: string, role: string, isVip: boolean = false, vipP1ToP3: boolean = false, vipP4ToP6: boolean = false) {
   const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-  const session = await new SignJWT({ userId, email, role, isVip })
+  const actualVipP1ToP3 = isVip || vipP1ToP3; // Legacy mapped to P1-P3
+  const session = await new SignJWT({ userId, email, role, isVip, vipP1ToP3: actualVipP1ToP3, vipP4ToP6 })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')

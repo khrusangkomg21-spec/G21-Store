@@ -149,7 +149,7 @@ export async function getAllCustomers() {
   });
 }
 
-export async function importLegacyCustomers(customers: { facebookName: string, name?: string, isVip: boolean, legacyPackages?: string }[]) {
+export async function importLegacyCustomers(customers: { facebookName: string, name?: string, vipP1ToP3: boolean, vipP4ToP6: boolean, legacyPackages?: string }[]) {
   await checkAdmin();
   
   let imported = 0;
@@ -167,7 +167,9 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
           email: `legacy_${Date.now()}_${Math.floor(Math.random() * 10000)}@g21.local`,
           facebookName: cust.facebookName,
           name: cust.name || null,
-          isVip: cust.isVip,
+          isVip: cust.vipP1ToP3, // Legacy mapping
+          vipP1ToP3: cust.vipP1ToP3,
+          vipP4ToP6: cust.vipP4ToP6,
           legacyPackages: cust.legacyPackages || null,
           password: 'legacy_user'
         }
@@ -185,15 +187,18 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
         newPackages = Array.from(mergedSet).join(',');
       }
       
-      const shouldUpdateVip = cust.isVip && !existing.isVip;
+      const shouldUpdateVipP1 = cust.vipP1ToP3 && !existing.vipP1ToP3;
+      const shouldUpdateVipP4 = cust.vipP4ToP6 && !existing.vipP4ToP6;
       const shouldUpdatePackages = newPackages !== existing.legacyPackages;
       const shouldUpdateName = cust.name && !existing.name;
       
-      if (shouldUpdateVip || shouldUpdatePackages || shouldUpdateName) {
+      if (shouldUpdateVipP1 || shouldUpdateVipP4 || shouldUpdatePackages || shouldUpdateName || (!existing.isVip && cust.vipP1ToP3)) {
         await prisma.user.update({
           where: { id: existing.id },
           data: { 
-            isVip: cust.isVip || existing.isVip,
+            isVip: cust.vipP1ToP3 || existing.isVip,
+            vipP1ToP3: cust.vipP1ToP3 || existing.vipP1ToP3,
+            vipP4ToP6: cust.vipP4ToP6 || existing.vipP4ToP6,
             name: existing.name || cust.name,
             legacyPackages: newPackages || null
           }
