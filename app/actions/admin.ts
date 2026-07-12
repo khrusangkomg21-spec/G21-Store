@@ -167,8 +167,8 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
   });
 
   let imported = 0;
-  const updates = [];
-  const creates = [];
+  const updates: any[] = [];
+  const creates: any[] = [];
 
   for (const cust of customers) {
     const fbName = cust.facebookName ? String(cust.facebookName).trim() : undefined;
