@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { notFound } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { getProductsByCategory } from '@/app/actions/product';
+import Link from 'next/link';
 
 // Category Definitions
 const subjectDb: Record<string, any> = {
