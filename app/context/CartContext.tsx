@@ -26,6 +26,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // Load from local storage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem('g21_cart');
     if (savedCart) {
@@ -38,6 +39,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsLoaded(true);
   }, []);
 
+  // Save to local storage when cart changes
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('g21_cart', JSON.stringify(cart));
@@ -47,7 +49,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addToCart = (item: Omit<CartItem, 'quantity'>) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
-      if (existing) return prev;
+      if (existing) {
+        // If it exists, just return the existing cart because we only sell digital goods (1 qty max is fine)
+        return prev;
+      }
       return [...prev, { ...item, quantity: 1 }];
     });
   };
@@ -56,8 +61,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const clearCart = () => setCart([]);
-  const getCartTotal = () => cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  const clearCart = () => {
+    setCart([]);
+  };
+
+  const getCartTotal = () => {
+    return cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  };
 
   return (
     <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, getCartTotal }}>
@@ -68,6 +78,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
 export function useCart() {
   const context = useContext(CartContext);
-  if (context === undefined) throw new Error('useCart must be used within a CartProvider');
+  if (context === undefined) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
   return context;
 }

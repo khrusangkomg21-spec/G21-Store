@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, totalAmount, items, slipImageUrl } = body;
+    const { email, totalAmount, discount, discountCode, items, slipImageUrl } = body;
 
     if (!email || !totalAmount || !items || items.length === 0) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -21,6 +21,8 @@ export async function POST(request: Request) {
         orderNumber,
         guestEmail: email,
         totalAmount: parseFloat(totalAmount),
+        discount: discount ? parseFloat(discount) : 0,
+        discountCode: discountCode || null,
         slipImageUrl: slipImageUrl || null,
         status: 'PENDING',
         items: {

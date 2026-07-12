@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { getSession } from './auth';
+import { sendDeliveryEmail } from '@/lib/email';
 
 async function checkAdmin() {
   const session = await getSession();
@@ -91,10 +92,18 @@ export async function getCompletedOrders() {
 export async function approveOrder(orderId: string) {
   await checkAdmin();
   
-  await prisma.order.update({
+  const order = await prisma.order.update({
     where: { id: orderId },
-    data: { status: 'COMPLETED' }
+    data: { status: 'COMPLETED' },
+    include: { user: true }
   });
+  
+  const downloadLink = 'https://g21-store.com/downloads/' + order.id; // Replace with actual path in future
+  const customerEmail = order.guestEmail || order.user?.email;
+  
+  if (customerEmail) {
+    await sendDeliveryEmail(customerEmail, order.orderNumber, downloadLink);
+  }
   
   return { success: true };
 }
@@ -195,4 +204,27 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
   }
   
   return { success: true, count: imported };
+}
+
+export async function createProduct(data: { id: string, title: string, description?: string, price: number, category: string, grade: string, downloadUrl?: string, images?: string[], isActive?: boolean }) {
+  await checkAdmin();
+  const exists = await prisma.product.findUnique({ where: { id: data.id } });
+  if (exists) throw new Error('รหัสสินค้านี้มีอยู่แล้วในระบบ');
+  
+  return await prisma.product.create({ data });
+}
+
+export async function updateProduct(id: string, data: { title?: string, description?: string, price?: number, category?: string, grade?: string, downloadUrl?: string, images?: string[], isActive?: boolean }) {
+  await checkAdmin();
+  return await prisma.product.update({
+    where: { id },
+    data
+  });
+}
+
+export async function deleteProduct(id: string) {
+  await checkAdmin();
+  return await prisma.product.delete({
+    where: { id }
+  });
 }

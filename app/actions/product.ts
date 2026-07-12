@@ -34,3 +34,18 @@ export async function getSavedLinks() {
     return [];
   }
 }
+
+export async function getProductsByCategory(category: string) {
+  try {
+    return await prisma.product.findMany({
+      where: { category, isActive: true },
+      orderBy: [
+        { grade: 'asc' },
+        { price: 'desc' }
+      ]
+    });
+  } catch (error) {
+    console.error('Error fetching products by category:', error);
+    return [];
+  }
+}

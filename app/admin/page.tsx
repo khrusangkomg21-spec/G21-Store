@@ -14,6 +14,8 @@ import {
   getAllCustomers,
   importLegacyCustomers
 } from '@/app/actions/admin';
+import ProductsTab from './ProductsTab';
+import AnalyticsChart from '@/components/admin/AnalyticsChart';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'customers'>('orders');
@@ -135,27 +137,48 @@ export default function AdminDashboard() {
     return <div className="container" style={{ padding: '4rem 0', textAlign: 'center' }}>กำลังโหลดข้อมูล...</div>;
   }
 
+  // Prepare chart data based on last 7 days of orders
+  const last7Days = Array.from({length: 7}, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+  });
+
+  const chartData = last7Days.map(dateLabel => {
+    const dailyOrders = completedOrders.filter(o => 
+      new Date(o.updatedAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) === dateLabel
+    );
+    const dailyTotal = dailyOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+    return { name: dateLabel, ยอดขาย: dailyTotal };
+  });
+
   return (
     <div className="container" style={{ padding: '2rem 0', animation: 'fadeIn 0.5s ease-out' }}>
       <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem', color: 'var(--primary)' }}>Admin Dashboard</h1>
       
-      {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-        <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid #fbbf24' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>รอตรวจสอบ</div>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fbbf24' }}>{stats.pendingCount}</div>
-        </div>
-        <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid #10b981' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>อนุมัติวันนี้</div>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#10b981' }}>{stats.approvedToday}</div>
-        </div>
-        <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--primary)' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>ยอดขายวันนี้</div>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary)' }}>฿{stats.salesToday.toLocaleString()}</div>
-        </div>
-        <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid #8b5cf6' }}>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>ยอดขายเดือนนี้</div>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#8b5cf6' }}>฿{stats.salesMonth.toLocaleString()}</div>
+      <div className="glass-card" style={{ padding: '2rem', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ color: 'var(--primary)' }}>📊</span> ยอดขาย 7 วันล่าสุด
+        </h2>
+        <AnalyticsChart data={chartData} />
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginTop: '2rem' }}>
+          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '1rem', borderLeft: '4px solid #fbbf24' }}>
+            <div style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>รอตรวจสอบ</div>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: '#fbbf24' }}>{stats.pendingCount}</div>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '1rem', borderLeft: '4px solid #10b981' }}>
+            <div style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>อนุมัติวันนี้</div>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: '#10b981' }}>{stats.approvedToday}</div>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '1rem', borderLeft: '4px solid var(--primary)' }}>
+            <div style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>ยอดขายวันนี้</div>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)' }}>฿{stats.salesToday.toLocaleString()}</div>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '1rem', borderLeft: '4px solid #8b5cf6' }}>
+            <div style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>ยอดขายเดือนนี้</div>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: '#8b5cf6' }}>฿{stats.salesMonth.toLocaleString()}</div>
+          </div>
         </div>
       </div>
 
@@ -297,40 +320,7 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'products' && (
-          <div>
-             <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>กำหนดลิงก์ดาวน์โหลด (OneDrive/Google Drive)</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>นำลิงก์แชร์ไฟล์งานมาวางให้ตรงกับแพ็กเกจ เพื่อให้ลูกค้าดาวน์โหลดอัตโนมัติเมื่ออนุมัติสลิป</p>
-            
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              {products.map(product => (
-                <div key={product.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)', flexWrap: 'wrap' }}>
-                  <div style={{ flex: '1', minWidth: '200px' }}>
-                    <div style={{ fontWeight: 600, color: 'white' }}>{product.title}</div>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{product.description} (รหัส: {product.id})</div>
-                  </div>
-                  <div style={{ flex: '2', minWidth: '300px', display: 'flex', gap: '0.5rem' }}>
-                    <input 
-                      type="url" 
-                      id={`link-${product.id}`}
-                      defaultValue={product.downloadUrl || ''}
-                      placeholder="วางลิงก์ที่นี่ (เช่น https://1drv.ms/f/s!...)"
-                      style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
-                    />
-                    <button 
-                      className="btn btn-primary"
-                      onClick={() => {
-                        const val = (document.getElementById(`link-${product.id}`) as HTMLInputElement).value;
-                        handleUpdateLink(product.id, val);
-                      }}
-                      style={{ padding: '0.75rem 1.5rem', whiteSpace: 'nowrap' }}
-                    >
-                      บันทึก
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ProductsTab products={products} fetchData={fetchData} />
         )}
 
         {activeTab === 'customers' && (

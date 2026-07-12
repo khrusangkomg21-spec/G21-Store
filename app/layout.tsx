@@ -10,8 +10,24 @@ import { CartProvider } from './context/CartContext'
 import Navbar from './components/Navbar'
 
 export const metadata: Metadata = {
-  title: 'G21 คลังสื่องานสอน | รองรับหลักสูตรใหม่ 2568',
-  description: 'สื่อการสอนพร้อมใช้ ครบ 5 วิชา แผนการสอน ใบงาน ข้อสอบ แผนหน้าเดียว บันทึกหลังสอน',
+  title: 'G21 คลังสื่องานสอน - แผนการสอนและใบงานสำเร็จรูป',
+  description: 'แผนการสอน ใบงาน ข้อสอบ สำเร็จรูป พร้อมใช้ แก้ไขได้ ตรงตามตัวชี้วัด เหมาะสำหรับครูประถม',
+  openGraph: {
+    title: 'G21 คลังสื่องานสอน - แผนการสอนและใบงานสำเร็จรูป',
+    description: 'แผนการสอน ใบงาน ข้อสอบ สำเร็จรูป พร้อมใช้ แก้ไขได้ ตรงตามตัวชี้วัด',
+    url: 'https://g21-store.com',
+    siteName: 'G21 คลังสื่องานสอน',
+    images: [
+      {
+        url: 'https://placehold.co/1200x630/1A4731/D4AF37?text=G21+Lesson+Plan+Store',
+        width: 1200,
+        height: 630,
+        alt: 'G21 คลังสื่องานสอน',
+      },
+    ],
+    locale: 'th_TH',
+    type: 'website',
+  },
 }
 
 export default async function RootLayout({

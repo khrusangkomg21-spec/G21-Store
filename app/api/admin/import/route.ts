@@ -16,6 +16,8 @@ export async function POST(req: Request) {
     for (const u of users) {
       if (!u.facebookName && !u.name) continue;
       
+      // Upsert by facebookName if it exists, or create new
+      // Since email is unique and required in our current schema, we must generate a dummy email if missing
       const dummyEmail = u.facebookName ? `${u.facebookName.replace(/\s+/g, '')}@import.local` : `user_${Date.now()}_${Math.random()}@import.local`;
       
       const existingUser = u.facebookName ? await prisma.user.findFirst({ where: { facebookName: u.facebookName } }) : null;

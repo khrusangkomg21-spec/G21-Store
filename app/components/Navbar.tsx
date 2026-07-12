@@ -6,6 +6,8 @@ import { logout } from '../actions/auth';
 
 export default function Navbar({ session }: { session: any }) {
   const { cart } = useCart();
+  
+  // Calculate total items (max 1 per item since it's digital goods, but we sum quantities just in case)
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
@@ -42,7 +44,18 @@ export default function Navbar({ session }: { session: any }) {
           <Link href="/cart" className="btn btn-primary" style={{ marginLeft: '0.5rem', position: 'relative' }}>
             ตะกร้าสินค้า
             {cartItemCount > 0 && (
-              <span style={{ position: 'absolute', top: '-8px', right: '-8px', background: '#ef4444', color: 'white', borderRadius: '50%', padding: '0.1rem 0.5rem', fontSize: '0.8rem', fontWeight: 'bold', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+              <span style={{
+                position: 'absolute',
+                top: '-8px',
+                right: '-8px',
+                background: '#ef4444',
+                color: 'white',
+                borderRadius: '50%',
+                padding: '0.1rem 0.5rem',
+                fontSize: '0.8rem',
+                fontWeight: 'bold',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+              }}>
                 {cartItemCount}
               </span>
             )}

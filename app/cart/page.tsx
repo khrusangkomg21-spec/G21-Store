@@ -2,18 +2,16 @@
 
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
+import { getActivePromoDiscount } from '@/lib/promotions';
 
 export default function Cart() {
   const { cart, removeFromCart, getCartTotal } = useCart();
 
   const subtotal = getCartTotal();
-  
-  let discountRate = 0;
-  if (subtotal >= 1000) discountRate = 0.15;
-  else if (subtotal >= 500) discountRate = 0.10;
-  
-  const discount = subtotal * discountRate;
-  const total = subtotal - discount;
+  const promo = getActivePromoDiscount(subtotal);
+  const discountRate = promo ? promo.rate : 0;
+  const discountAmount = promo ? promo.amount : 0;
+  const total = subtotal - discountAmount;
 
   return (
     <div className="container" style={{ padding: '3rem 0', animation: 'fadeIn 0.5s ease-out' }}>
@@ -59,10 +57,10 @@ export default function Cart() {
             <span>฿{subtotal}</span>
           </div>
 
-          {discount > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', background: 'rgba(16, 185, 129, 0.1)', padding: '0.5rem 1rem', borderRadius: '0.5rem' }}>
-              <span style={{ color: '#10b981', fontWeight: 600 }}>ส่วนลด {discountRate * 100}% (ซื้อครบ {discountRate === 0.15 ? '1,000.-' : '500.-'})</span>
-              <span style={{ color: '#10b981', fontWeight: 700 }}>- ฿{Math.floor(discount)}</span>
+          {promo && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--primary)', padding: '0.75rem 1rem', borderRadius: '0.5rem' }}>
+              <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{promo.name} ลด {promo.rate * 100}%</span>
+              <span style={{ color: 'var(--primary)', fontWeight: 700 }}>- ฿{Math.floor(discountAmount)}</span>
             </div>
           )}
           
@@ -75,21 +73,22 @@ export default function Cart() {
             ดำเนินการชำระเงิน
           </Link>
           
-          {subtotal > 0 && subtotal < 1000 && (
+          {/* Upsell Promo - Check if today is a promo day first */}
+          {getActivePromoDiscount(1000) && subtotal > 0 && subtotal < 500 && (
             <div style={{ textAlign: 'center', marginTop: '1rem', background: 'rgba(212, 175, 55, 0.05)', padding: '0.5rem', borderRadius: '0.5rem', border: '1px dashed var(--primary)' }}>
-              {subtotal < 500 ? (
+              {subtotal < 100 ? (
                 <p style={{ color: 'var(--primary)', fontSize: '0.85rem', margin: 0, fontWeight: 500 }}>
-                  🔥 ซื้อเพิ่มอีก ฿{500 - subtotal} รับส่วนลด 10%
+                  🔥 โปรพิเศษวันนี้! ซื้อให้ครบ 100.- รับส่วนลด 12% ทันที
                 </p>
               ) : (
                 <p style={{ color: 'var(--primary)', fontSize: '0.85rem', margin: 0, fontWeight: 500 }}>
-                  🔥 ซื้อเพิ่มอีก ฿{1000 - subtotal} รับส่วนลด 15%
+                  🔥 ช้อปเพิ่มอีก ฿{500 - subtotal} รับส่วนลดเพิ่มเป็น 21% ไปเลย!
                 </p>
               )}
             </div>
           )}
 
-          {/* Contact Support Info - อัปเดตปุ่ม LINE OA */}
+          {/* Contact Support Info */}
           <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(0, 195, 0, 0.05)', border: '1px solid #00c300', borderRadius: '1rem', textAlign: 'center' }}>
             <div style={{ width: '48px', height: '48px', background: '#00c300', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
               <svg style={{ width: '28px', height: '28px', color: 'white' }} viewBox="0 0 24 24" fill="currentColor">

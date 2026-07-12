@@ -42,6 +42,7 @@ export async function GET() {
   try {
     let count = 0;
 
+    // 1. Seed VIP Groups
     await prisma.product.upsert({
       where: { id: 'vip-p1-p3' },
       update: {},
@@ -70,14 +71,17 @@ export async function GET() {
     });
     count++;
 
+    // 2. Seed Subjects x Grades x Packages
     for (const subject of subjects) {
       for (const grade of grades) {
         const pkgs = subject.id === 'eng' ? englishPackages : standardPackages;
+        
         for (const pkg of pkgs) {
           const productId = `${subject.id}-${grade}-${pkg.id}`;
+          
           await prisma.product.upsert({
             where: { id: productId },
-            update: {},
+            update: {}, // Do not overwrite downloadUrl if it exists
             create: {
               id: productId,
               title: `${pkg.name}`,
@@ -92,8 +96,9 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ success: true, message: `ซิงค์ข้อมูลสำเร็จจำนวน ${count} รายการ!` });
+    return NextResponse.json({ success: true, message: `Synced ${count} products successfully!` });
   } catch (error: any) {
+    console.error(error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

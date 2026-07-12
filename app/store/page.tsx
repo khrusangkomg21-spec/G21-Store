@@ -2,12 +2,12 @@ import Link from 'next/link';
 
 export default function Store() {
   const subjects: { id: string; title: string; desc: string; icon: string; image: string; comingSoon?: boolean }[] = [
-    { id: 'sci', title: 'วิทยาศาสตร์ สิ่งแวดล้อม และเทคโนโลยี', desc: 'นักวิทยาศาสตร์น้อย ป.1 - ป.3', icon: '🔬', image: '/sci.jpg' },
-    { id: 'soc', title: 'สังคมและความเป็นพลเมือง', desc: 'ครอบครัวของฉัน ป.1 - ป.3', icon: '🌾', image: '/soc.jpg' },
-    { id: 'eco', title: 'เศรษฐกิจและการเงิน', desc: 'การเรียนรู้เพื่อชีวิต ป.1 - ป.3', icon: '💰', image: '/eco.jpg' },
-    { id: 'hea', title: 'สุขภาพกายและจิต', desc: 'พลศึกษา ป.1 - ป.3', icon: '🩺', image: '/hea.jpg' },
-    { id: 'art', title: 'ศิลปะและวัฒนธรรมเพื่อสุนทรียภาพ', desc: 'ศิลปะ ป.1 - ป.3', icon: '🎨', image: '/art.jpg' },
-    { id: 'eng', title: 'ภาษาอังกฤษ', desc: 'รายวิชาพื้นฐาน 80 ชม.', icon: '🔤', image: '/eng.jpg' },
+    { id: 'sci', title: 'วิทยาศาสตร์ สิ่งแวดล้อม และเทคโนโลยี', desc: 'นักวิทยาศาสตร์น้อย ป.1 - ป.3', icon: '🔬', image: '/covers/sci.jpg' },
+    { id: 'soc', title: 'สังคมและความเป็นพลเมือง', desc: 'ครอบครัวของฉัน ป.1 - ป.3', icon: '🌾', image: '/covers/soc.jpg' },
+    { id: 'eco', title: 'เศรษฐกิจและการเงิน', desc: 'การเรียนรู้เพื่อชีวิต ป.1 - ป.3', icon: '💰', image: '/covers/eco.jpg' },
+    { id: 'hea', title: 'สุขภาพกายและจิต', desc: 'พลศึกษา ป.1 - ป.3', icon: '🩺', image: '/covers/hea.jpg' },
+    { id: 'art', title: 'ศิลปะและวัฒนธรรมเพื่อสุนทรียภาพ', desc: 'ศิลปะ ป.1 - ป.3', icon: '🎨', image: '/covers/art.jpg' },
+    { id: 'eng', title: 'ภาษาอังกฤษ', desc: 'รายวิชาพื้นฐาน 80 ชม.', icon: '🇬🇧', image: '/covers/eng.jpg' },
   ];
 
   return (
