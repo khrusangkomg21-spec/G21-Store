@@ -92,13 +92,19 @@ export default function AdminDashboard() {
         const ws = wb.Sheets[wsname];
         const data = XLSX.utils.sheet_to_json(ws);
         
-        const parsed = data.map((row: any) => ({
-          facebookName: row['Facebook'] || row['ชื่อเฟส'] || row['ชื่อเฟสบุ๊ค'] || row['facebookName'],
-          name: row['Name'] || row['ชื่อ-สกุลจริง'] || row['ชื่อ-สกุล'],
-          vipP1ToP3: !!(row['VIP_P1-3'] || row['vipP1ToP3'] || row['VIP']),
-          vipP4ToP6: !!(row['VIP_P4-6'] || row['vipP4ToP6']),
-          legacyPackages: row['สินค้าที่เคยซื้อ'] || row['แพ็กเกจ'] || row['Packages'] || row['packages'] || null
-        }));
+        const parsed = data.map((row: any) => {
+          let fullName = row['Name'] || row['ชื่อ-สกุลจริง'] || row['ชื่อ-สกุล'];
+          if (!fullName && row['ชื่อ']) {
+             fullName = row['นามสกุล'] ? `${row['ชื่อ']} ${row['นามสกุล']}` : row['ชื่อ'];
+          }
+          return {
+            facebookName: row['Facebook'] || row['ชื่อเฟส'] || row['ชื่อเฟสบุ๊ค'] || row['facebookName'],
+            name: fullName,
+            vipP1ToP3: !!(row['VIP_P1-3'] || row['vipP1ToP3'] || row['VIP']),
+            vipP4ToP6: !!(row['VIP_P4-6'] || row['vipP4ToP6']),
+            legacyPackages: row['สินค้าที่เคยซื้อ'] || row['แพ็กเกจ'] || row['Packages'] || row['packages'] || null
+          };
+        });
         
         const res = await importLegacyCustomers(parsed);
         if(res.success) {
@@ -331,7 +337,7 @@ export default function AdminDashboard() {
               <div>
                 <h2 style={{ fontSize: '1.5rem' }}>ฐานข้อมูลลูกค้าเก่า/ใหม่ ({customers.length} รายการ)</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                  การนำเข้าไฟล์ Excel ตั้งชื่อหัวคอลัมน์ว่า: "ชื่อเฟส", "ชื่อ-สกุลจริง", "VIP_P1-3", และ "VIP_P4-6" (ใส่ช่องนั้นว่า TRUE ถ้าเป็น VIP)
+                  การนำเข้าไฟล์ Excel ตั้งชื่อหัวคอลัมน์ว่า: "ชื่อเฟส", "ชื่อ" (และ "นามสกุล" ถ้าต้องการแยก), "VIP_P1-3", "VIP_P4-6" (ใส่ TRUE ถ้าเป็น VIP) และ "แพ็กเกจ" (ใส่รหัสสินค้า คั่นด้วยลูกน้ำ)
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '1rem' }}>
