@@ -146,12 +146,36 @@ export default function Checkout() {
         {/* Payment & Form */}
         <div className="glass-card" style={{ padding: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#10b981' }}>⚡</span> สแกนจ่ายอัตโนมัติ (QR Code)
+            <span style={{ color: '#eb1e79' }}>💰</span> โอนเข้าบัญชีธนาคารออมสิน
           </h2>
           
           <div style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1px solid var(--primary)', borderRadius: '1rem', padding: '2rem', marginBottom: '2rem', textAlign: 'center' }}>
             
-            <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.95rem' }}>กรุณาโอนเงินเข้าบัญชีธนาคารออมสิน (ด้านขวามือ) ด้วยยอดเงินที่ระบุด้านล่าง</p>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.95rem' }}>กรุณาโอนเงินเข้าบัญชีด้านล่าง</p>
+
+            <div style={{ background: 'rgba(235, 30, 121, 0.1)', border: '1px solid #eb1e79', borderRadius: '0.75rem', padding: '1.25rem', marginBottom: '1.5rem', display: 'inline-block', textAlign: 'left', minWidth: '80%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                <div style={{ width: '32px', height: '32px', background: '#eb1e79', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>G</div>
+                <div style={{ color: '#eb1e79', fontWeight: 'bold', fontSize: '1.1rem' }}>ธนาคารออมสิน (GSB)</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center', marginBottom: '0.25rem' }}>
+                <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'white', letterSpacing: '2px', textAlign: 'center' }}>020434775829</div>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText('020434775829');
+                    alert('คัดลอกเลขบัญชี 020434775829 แล้ว!');
+                  }}
+                  title="คัดลอกเลขบัญชี"
+                  style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                  className="hover:bg-white hover:text-black"
+                >
+                  <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                </button>
+              </div>
+              <div style={{ color: 'var(--text-main)', fontSize: '1rem', textAlign: 'center', marginTop: '0.5rem' }}>ชื่อบัญชี: นางสาวอัจฉรา จุติอมรเลิศ เท่านั้น</div>
+            </div>
+
+            <p style={{ color: 'var(--text-muted)', marginBottom: '0.5rem', fontSize: '0.95rem' }}>ด้วยยอดเงินที่ระบุด้านล่าง</p>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
               <h3 style={{ fontSize: '2.5rem', letterSpacing: '1px', color: 'var(--primary)', margin: 0 }}>{total.toFixed(2)}</h3>

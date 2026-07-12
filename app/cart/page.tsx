@@ -8,11 +8,7 @@ export default function Cart() {
   const { cart, removeFromCart, getCartTotal } = useCart();
 
   const subtotal = getCartTotal();
-  const promo = getActivePromoDiscount(subtotal);
-  const discountRate = promo ? promo.rate : 0;
-  const discountAmount = promo ? promo.amount : 0;
-  const total = subtotal - discountAmount;
-
+  
   return (
     <div className="container" style={{ padding: '3rem 0', animation: 'fadeIn 0.5s ease-out' }}>
       <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem' }}>ตะกร้าสินค้า</h1>
@@ -57,32 +53,25 @@ export default function Cart() {
             <span>฿{subtotal}</span>
           </div>
 
-          {promo && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--primary)', padding: '0.75rem 1rem', borderRadius: '0.5rem' }}>
-              <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{promo.name} ลด {promo.rate * 100}%</span>
-              <span style={{ color: 'var(--primary)', fontWeight: 700 }}>- ฿{Math.floor(discountAmount)}</span>
-            </div>
-          )}
-          
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginBottom: '2rem' }}>
             <span style={{ fontSize: '1.25rem', fontWeight: 600 }}>ยอดสุทธิ</span>
-            <span style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary)' }}>฿{Math.floor(total)}</span>
+            <span style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary)' }}>฿{subtotal}</span>
           </div>
 
           <Link href="/checkout" className={`btn btn-primary ${cart.length === 0 ? 'disabled' : ''}`} style={{ width: '100%', padding: '1rem', fontSize: '1.125rem', opacity: cart.length === 0 ? 0.5 : 1, pointerEvents: cart.length === 0 ? 'none' : 'auto' }}>
             ดำเนินการชำระเงิน
           </Link>
           
-          {/* Upsell Promo - Check if today is a promo day first */}
-          {getActivePromoDiscount(1000) && subtotal > 0 && subtotal < 500 && (
+          {/* Upsell Promo */}
+          {subtotal > 0 && subtotal < 1000 && (
             <div style={{ textAlign: 'center', marginTop: '1rem', background: 'rgba(212, 175, 55, 0.05)', padding: '0.5rem', borderRadius: '0.5rem', border: '1px dashed var(--primary)' }}>
-              {subtotal < 100 ? (
+              {subtotal < 500 ? (
                 <p style={{ color: 'var(--primary)', fontSize: '0.85rem', margin: 0, fontWeight: 500 }}>
-                  🔥 โปรพิเศษวันนี้! ซื้อให้ครบ 100.- รับส่วนลด 12% ทันที
+                  🔥 ช้อปเพิ่มอีก ฿{500 - subtotal} รับส่วนลด 10% ทันที!
                 </p>
               ) : (
                 <p style={{ color: 'var(--primary)', fontSize: '0.85rem', margin: 0, fontWeight: 500 }}>
-                  🔥 ช้อปเพิ่มอีก ฿{500 - subtotal} รับส่วนลดเพิ่มเป็น 21% ไปเลย!
+                  🔥 ช้อปเพิ่มอีก ฿{1000 - subtotal} รับส่วนลดเพิ่มเป็น 15% ทันที!
                 </p>
               )}
             </div>
