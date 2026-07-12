@@ -92,7 +92,15 @@ export default function AdminDashboard() {
         const ws = wb.Sheets[wsname];
         const data = XLSX.utils.sheet_to_json(ws);
         
-        const parsed = data.map((row: any) => {
+        const parsed = data.map((rawRow: any) => {
+          // Clean up headers (trim spaces)
+          const row: any = {};
+          for (const key in rawRow) {
+            if (rawRow.hasOwnProperty(key)) {
+              row[key.trim()] = rawRow[key];
+            }
+          }
+          
           let fullName = row['Name'] || row['ชื่อ-สกุลจริง'] || row['ชื่อ-สกุล'];
           if (!fullName && row['ชื่อ']) {
              fullName = row['นามสกุล'] ? `${row['ชื่อ']} ${row['นามสกุล']}` : row['ชื่อ'];

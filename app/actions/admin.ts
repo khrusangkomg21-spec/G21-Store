@@ -154,19 +154,30 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
   
   let imported = 0;
   for (const cust of customers) {
-    if (!cust.facebookName) continue;
+    const fbName = cust.facebookName?.trim();
+    const realName = cust.name?.trim();
+    
+    if (!fbName && !realName) continue;
     
     // Check if exists
-    const existing = await prisma.user.findFirst({
-      where: { facebookName: cust.facebookName }
-    });
+    let existing = null;
+    if (fbName) {
+      existing = await prisma.user.findFirst({
+        where: { facebookName: fbName }
+      });
+    }
+    if (!existing && realName) {
+      existing = await prisma.user.findFirst({
+        where: { name: realName }
+      });
+    }
     
     if (!existing) {
       await prisma.user.create({
         data: {
           email: `legacy_${Date.now()}_${Math.floor(Math.random() * 10000)}@g21.local`,
-          facebookName: cust.facebookName,
-          name: cust.name || null,
+          facebookName: fbName || null,
+          name: realName || null,
           isVip: cust.vipP1ToP3, // Legacy mapping
           vipP1ToP3: cust.vipP1ToP3,
           vipP4ToP6: cust.vipP4ToP6,
