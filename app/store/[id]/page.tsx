@@ -24,6 +24,7 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
 
   const [dbProducts, setDbProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [session, setSession] = useState<any>(null);
   const [selectedGrade, setSelectedGrade] = useState('P1');
   const [selectedPackage, setSelectedPackage] = useState('');
   const [showToast, setShowToast] = useState(false);
@@ -36,6 +37,10 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
       setIsLoading(false);
     }
     loadProducts();
+    
+    import('@/app/actions/auth').then(({ getSession }) => {
+      getSession().then(s => setSession(s));
+    });
   }, [id]);
 
   const currentPackages = dbProducts.filter(p => p.grade === selectedGrade);
@@ -52,6 +57,15 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
   }, [selectedGrade, currentPackages, selectedPackage]);
 
   const activePackage = currentPackages.find(p => p.id === selectedPackage);
+
+  const isVipP13 = session?.isVip || session?.vipP1ToP3;
+  const isVipP46 = session?.vipP4ToP6;
+  const isGradeP13 = ['P1', 'P2', 'P3'].includes(selectedGrade);
+  const isGradeP46 = ['P4', 'P5', 'P6'].includes(selectedGrade);
+  
+  const hasVipAccess = subject.id !== 'eng' && (
+    (isVipP13 && isGradeP13) || (isVipP46 && isGradeP46)
+  );
 
   const handleAddToCart = (pkg: any) => {
     if (!pkg || !pkg.downloadUrl) return;
@@ -212,19 +226,35 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
                   ฿{activePackage ? activePackage.price : 0}
                 </h2>
               </div>
-              <button 
-                onClick={() => handleAddToCart(activePackage)}
-                className="btn btn-primary" 
-                style={{ 
-                  padding: '1rem 2.5rem', 
-                  fontSize: '1.25rem', 
-                  opacity: (activePackage && activePackage.downloadUrl) ? 1 : 0.5, 
-                  cursor: (activePackage && activePackage.downloadUrl) ? 'pointer' : 'not-allowed' 
-                }}
-                disabled={!activePackage || !activePackage.downloadUrl}
-              >
-                {activePackage && !activePackage.downloadUrl ? 'ยังไม่พร้อมจำหน่าย' : 'เพิ่มลงตะกร้า'}
-              </button>
+              {hasVipAccess ? (
+                <Link 
+                  href={isGradeP13 ? '/vip/p1-3' : '/vip/p4-6'} 
+                  className="btn btn-outline" 
+                  style={{ 
+                    padding: '1rem 2.5rem', 
+                    fontSize: '1.25rem', 
+                    borderColor: '#10b981', 
+                    color: '#10b981',
+                    background: 'rgba(16, 185, 129, 0.1)'
+                  }}
+                >
+                  ⭐ มีสิทธิ์ใช้งานแล้วในห้อง VIP
+                </Link>
+              ) : (
+                <button 
+                  onClick={() => handleAddToCart(activePackage)}
+                  className="btn btn-primary" 
+                  style={{ 
+                    padding: '1rem 2.5rem', 
+                    fontSize: '1.25rem', 
+                    opacity: (activePackage && activePackage.downloadUrl) ? 1 : 0.5, 
+                    cursor: (activePackage && activePackage.downloadUrl) ? 'pointer' : 'not-allowed' 
+                  }}
+                  disabled={!activePackage || !activePackage.downloadUrl}
+                >
+                  {activePackage && !activePackage.downloadUrl ? 'ยังไม่พร้อมจำหน่าย' : 'เพิ่มลงตะกร้า'}
+                </button>
+              )}
             </div>
           </div>
 

@@ -60,97 +60,108 @@ export default async function VIPRoomP46() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0F172A] text-white selection:bg-[#FACC15] selection:text-black">
-      <Navbar session={session} />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-32">
-        <div className="bg-gradient-to-r from-[#FACC15]/20 to-[#F59E0B]/20 border border-[#FACC15]/30 rounded-2xl p-8 mb-12 shadow-[0_0_40px_rgba(250,204,21,0.1)] backdrop-blur-sm">
-          <div className="flex items-center gap-4 mb-4">
-            <span className="text-4xl">👑</span>
-            <h1 className="text-3xl font-bold text-[#FACC15]">ยินดีต้อนรับสู่ห้อง VIP [ป.4 - ป.6]</h1>
-          </div>
-          <p className="text-gray-300 text-lg">
-            คุณสามารถดาวน์โหลดสื่อการสอนทั้งหมด (5 วิชาหลัก ยกเว้นภาษาอังกฤษและคอมโบเซ็ต) ได้ฟรีทันทีจากหน้านี้ค่ะ
-          </p>
+    <div className="container" style={{ padding: '2rem 0', minHeight: '80vh', animation: 'fadeIn 0.5s ease-out' }}>
+      <div className="glass-card" style={{ padding: '3rem 2rem', marginBottom: '3rem', background: 'radial-gradient(circle at top right, rgba(212, 175, 55, 0.2), var(--surface))', border: '1px solid rgba(212, 175, 55, 0.3)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+          <span style={{ fontSize: '2.5rem' }}>👑</span>
+          <h1 style={{ fontSize: '2.5rem', color: 'var(--primary)', margin: 0 }}>ยินดีต้อนรับสู่ห้อง VIP [ป.4 - ป.6]</h1>
         </div>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.25rem', margin: 0 }}>
+          คุณสามารถดาวน์โหลดสื่อการสอนทั้งหมด (5 วิชาหลัก ยกเว้นภาษาอังกฤษและคอมโบเซ็ต) ได้ฟรีทันทีจากหน้านี้ค่ะ
+        </p>
+      </div>
 
-        {Object.entries(categoryMap).map(([cat, items]) => {
-          if (items.length === 0) return null;
-          return (
-            <div key={cat} className="mb-12">
-              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2 border-b border-gray-800 pb-2">
-                <span className="w-2 h-6 bg-[#FACC15] rounded-full inline-block"></span>
-                {cat}
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {items.map(product => (
-                  <div key={product.id} className="bg-[#1E293B] border border-gray-700/50 rounded-xl p-5 hover:border-[#FACC15]/50 transition-colors flex flex-col h-full">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="bg-gray-800 text-gray-300 text-xs px-2 py-1 rounded-md">{product.grade}</span>
-                      <span className="text-xs text-gray-500 font-mono">{product.id}</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-white mb-4 flex-grow">{product.title}</h3>
-                    
-                    {product.downloadUrl ? (
-                      <a 
-                        href={product.downloadUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="w-full py-2.5 px-4 bg-[#FACC15] hover:bg-[#F59E0B] text-black font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        ดาวน์โหลดไฟล์ (Google Drive)
-                      </a>
-                    ) : (
-                      <button disabled className="w-full py-2.5 px-4 bg-gray-800 text-gray-500 font-semibold rounded-lg cursor-not-allowed flex items-center justify-center gap-2 text-sm border border-gray-700">
-                        ไม่มีลิงก์ดาวน์โหลด
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-
-        {uncategorized.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2 border-b border-gray-800 pb-2">
-              <span className="w-2 h-6 bg-[#FACC15] rounded-full inline-block"></span>
-              วิชาอื่นๆ
+      {Object.entries(categoryMap).map(([cat, items]) => {
+        if (items.length === 0) return null;
+        return (
+          <div key={cat} style={{ marginBottom: '4rem' }}>
+            <h2 style={{ fontSize: '1.75rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
+              <span style={{ width: '6px', height: '24px', background: 'var(--primary)', borderRadius: '4px' }}></span>
+              {cat}
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {uncategorized.map(product => (
-                  <div key={product.id} className="bg-[#1E293B] border border-gray-700/50 rounded-xl p-5 hover:border-[#FACC15]/50 transition-colors flex flex-col h-full">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="bg-gray-800 text-gray-300 text-xs px-2 py-1 rounded-md">{product.grade}</span>
-                      <span className="text-xs text-gray-500 font-mono">{product.id}</span>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
+              {items.map((product: any) => (
+                <div key={product.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                  {product.images && product.images.length > 0 ? (
+                    <div style={{ height: '180px', borderRadius: '0.5rem', marginBottom: '1.5rem', overflow: 'hidden' }}>
+                      <img src={product.images[0]} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
-                    <h3 className="text-lg font-semibold text-white mb-4 flex-grow">{product.title}</h3>
-                    
-                    {product.downloadUrl ? (
-                      <a 
-                        href={product.downloadUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="w-full py-2.5 px-4 bg-[#FACC15] hover:bg-[#F59E0B] text-black font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        ดาวน์โหลดไฟล์ (Google Drive)
-                      </a>
-                    ) : (
-                      <button disabled className="w-full py-2.5 px-4 bg-gray-800 text-gray-500 font-semibold rounded-lg cursor-not-allowed flex items-center justify-center gap-2 text-sm border border-gray-700">
-                        ไม่มีลิงก์ดาวน์โหลด
-                      </button>
-                    )}
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', background: 'rgba(212, 175, 55, 0.1)', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
+                      <svg style={{ width: '64px', height: '64px', color: 'var(--primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <span style={{ background: 'var(--border-color)', color: 'var(--text-main)', fontSize: '0.8rem', padding: '0.2rem 0.6rem', borderRadius: '0.25rem' }}>{product.grade}</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{product.id}</span>
                   </div>
-                ))}
-              </div>
+                  
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', flex: 1 }}>{product.title}</h3>
+                  
+                  {product.downloadUrl ? (
+                    <a href={product.downloadUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+                      <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                      ดาวน์โหลดไฟล์ (Drive)
+                    </a>
+                  ) : (
+                    <button disabled className="btn" style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--text-muted)', cursor: 'not-allowed' }}>
+                      ไม่มีลิงก์ดาวน์โหลด
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        )}
+        );
+      })}
 
-      </main>
+      {uncategorized.length > 0 && (
+        <div style={{ marginBottom: '4rem' }}>
+          <h2 style={{ fontSize: '1.75rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
+            <span style={{ width: '6px', height: '24px', background: 'var(--primary)', borderRadius: '4px' }}></span>
+            วิชาอื่นๆ
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
+            {uncategorized.map((product: any) => (
+              <div key={product.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                {product.images && product.images.length > 0 ? (
+                  <div style={{ height: '180px', borderRadius: '0.5rem', marginBottom: '1.5rem', overflow: 'hidden' }}>
+                    <img src={product.images[0]} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', background: 'rgba(212, 175, 55, 0.1)', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
+                    <svg style={{ width: '64px', height: '64px', color: 'var(--primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
+                  </div>
+                )}
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ background: 'var(--border-color)', color: 'var(--text-main)', fontSize: '0.8rem', padding: '0.2rem 0.6rem', borderRadius: '0.25rem' }}>{product.grade}</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{product.id}</span>
+                </div>
+                
+                <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', flex: 1 }}>{product.title}</h3>
+                
+                {product.downloadUrl ? (
+                  <a href={product.downloadUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+                    <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    ดาวน์โหลดไฟล์ (Drive)
+                  </a>
+                ) : (
+                  <button disabled className="btn" style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--text-muted)', cursor: 'not-allowed' }}>
+                    ไม่มีลิงก์ดาวน์โหลด
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

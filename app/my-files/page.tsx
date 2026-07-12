@@ -39,6 +39,26 @@ export default function MyFiles() {
     );
   }
 
+  const formatCategory = (cat: string) => {
+    const subjectNames: Record<string, string> = {
+      'sci': 'วิทยาศาสตร์',
+      'soc': 'สังคมศึกษา',
+      'eco': 'เศรษฐศาสตร์',
+      'hea': 'สุขศึกษาและพลศึกษา',
+      'art': 'ศิลปะ',
+      'eng': 'ภาษาอังกฤษ',
+      'math': 'คณิตศาสตร์',
+      'thai': 'ภาษาไทย',
+      'hist': 'ประวัติศาสตร์'
+    };
+    return subjectNames[cat] || cat;
+  };
+
+  const formatGrade = (grade: string) => {
+    if (!grade) return '';
+    return grade.replace('P', 'ป.');
+  };
+
   return (
     <div className="container" style={{ padding: '2rem 0', animation: 'fadeIn 0.5s ease-out', minHeight: '60vh' }}>
       <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem', color: 'var(--primary)' }}>ไฟล์ของฉัน</h1>
@@ -55,13 +75,19 @@ export default function MyFiles() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
           {files.map((file) => (
             <div key={file.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '150px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
-                <svg style={{ width: '64px', height: '64px', color: 'var(--primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{file.name}</h3>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', flex: 1 }}>{file.subject} {file.grade}</p>
+              {file.images && file.images.length > 0 ? (
+                <div style={{ height: '180px', borderRadius: '0.5rem', marginBottom: '1.5rem', overflow: 'hidden' }}>
+                  <img src={file.images[0]} alt={file.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
+                  <svg style={{ width: '64px', height: '64px', color: 'var(--primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+              )}
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>วิชา{formatCategory(file.category)} {formatGrade(file.grade)}</h3>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', flex: 1, fontWeight: 500 }}>แพ็กเกจ: {file.title}</p>
               
               {file.downloadUrl ? (
                 <a href={file.downloadUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
