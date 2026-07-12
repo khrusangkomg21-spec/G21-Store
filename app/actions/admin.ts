@@ -149,7 +149,7 @@ export async function getAllCustomers() {
   });
 }
 
-export async function importLegacyCustomers(customers: { facebookName: string, name?: string, vipP1ToP3: boolean, vipP4ToP6: boolean, legacyPackages?: string }[]) {
+export async function importLegacyCustomers(customers: { facebookName: string, name?: string, firstName?: string, lastName?: string, vipP1ToP3: boolean, vipP4ToP6: boolean, legacyPackages?: string }[]) {
   await checkAdmin();
   
   // 1. Prepare fast lookups
@@ -173,6 +173,8 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
   for (const cust of customers) {
     const fbName = cust.facebookName?.trim();
     const realName = cust.name?.trim();
+    const fName = cust.firstName?.trim();
+    const lName = cust.lastName?.trim();
     
     if (!fbName && !realName) continue;
     
@@ -186,6 +188,8 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
         email: `legacy_${Date.now()}_${Math.floor(Math.random() * 100000)}@g21.local`,
         facebookName: fbName || null,
         name: realName || null,
+        firstName: fName || null,
+        lastName: lName || null,
         isVip: cust.vipP1ToP3, // Legacy mapping
         vipP1ToP3: cust.vipP1ToP3,
         vipP4ToP6: cust.vipP4ToP6,
@@ -218,8 +222,10 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
       const shouldUpdateVipP4 = cust.vipP4ToP6 && !existing.vipP4ToP6;
       const shouldUpdatePackages = newPackages !== existing.legacyPackages;
       const shouldUpdateName = cust.name && !existing.name;
+      const shouldUpdateFName = fName && !existing.firstName;
+      const shouldUpdateLName = lName && !existing.lastName;
       
-      if (shouldUpdateVipP1 || shouldUpdateVipP4 || shouldUpdatePackages || shouldUpdateName || (!existing.isVip && cust.vipP1ToP3)) {
+      if (shouldUpdateVipP1 || shouldUpdateVipP4 || shouldUpdatePackages || shouldUpdateName || shouldUpdateFName || shouldUpdateLName || (!existing.isVip && cust.vipP1ToP3)) {
         updates.push(
           prisma.user.update({
             where: { id: existing.id },
@@ -228,6 +234,8 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
               vipP1ToP3: cust.vipP1ToP3 || existing.vipP1ToP3,
               vipP4ToP6: cust.vipP4ToP6 || existing.vipP4ToP6,
               name: existing.name || cust.name,
+              firstName: existing.firstName || fName,
+              lastName: existing.lastName || lName,
               legacyPackages: newPackages || null
             }
           })
@@ -238,6 +246,8 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
         existing.vipP1ToP3 = cust.vipP1ToP3 || existing.vipP1ToP3;
         existing.vipP4ToP6 = cust.vipP4ToP6 || existing.vipP4ToP6;
         existing.legacyPackages = newPackages || null;
+        existing.firstName = existing.firstName || fName;
+        existing.lastName = existing.lastName || lName;
       }
     }
   }

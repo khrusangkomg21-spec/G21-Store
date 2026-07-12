@@ -15,6 +15,8 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   name      String?
+  firstName String?
+  lastName  String?
   password  String?  // if using credentials
   role               String    @default("USER") // "USER" or "ADMIN"
   facebookName       String?

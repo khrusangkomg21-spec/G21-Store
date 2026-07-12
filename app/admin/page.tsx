@@ -122,6 +122,8 @@ export default function AdminDashboard() {
           return {
             facebookName: row['Facebook'] || row['ชื่อเฟส'] || row['ชื่อเฟสบุ๊ค'] || row['facebookName'] || row['fb'] || row['FB'],
             name: fullName,
+            firstName: firstName || undefined,
+            lastName: lastName || undefined,
             vipP1ToP3: isTruthy(row['VIP_P1-3']) || isTruthy(row['vipP1ToP3']) || isTruthy(row['VIP']),
             vipP4ToP6: isTruthy(row['VIP_P4-6']) || isTruthy(row['vipP4ToP6']),
             legacyPackages: row['สินค้าที่เคยซื้อ'] || row['แพ็กเกจ'] || row['Packages'] || row['packages'] || row['แพคเกจ'] || row['รหัสสินค้า'] || null
@@ -389,8 +391,8 @@ export default function AdminDashboard() {
                 <tbody>
                   {customers.map(c => {
                     const nameParts = (c.name || '').split(' ');
-                    const firstName = nameParts[0] || '-';
-                    const lastName = nameParts.slice(1).join(' ') || '-';
+                    const firstName = c.firstName || nameParts[0] || '-';
+                    const lastName = c.lastName || nameParts.slice(1).join(' ') || '-';
                     return (
                     <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <td style={{ padding: '1rem' }}>{new Date(c.createdAt).toLocaleDateString('th-TH')}</td>
