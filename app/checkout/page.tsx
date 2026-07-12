@@ -234,7 +234,6 @@ export default function Checkout() {
                 แอดมินจะทำการตรวจสอบและอนุมัติให้โดยเร็วที่สุดครับ
               </p>
             </div>
-            </div>
           </div>
 
           <div style={{ textAlign: 'center', margin: '2rem 0' }}>
