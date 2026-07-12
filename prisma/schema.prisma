@@ -21,6 +21,7 @@ model User {
   phone              String?
   isVip              Boolean   @default(false)
   vipNumber          Int?      // Sequence number for VIP members
+  legacyPackages     String?   // Comma-separated list of product IDs from legacy purchases
   resetToken         String?
   resetTokenExpiry   DateTime?
   createdAt          DateTime  @default(now())
