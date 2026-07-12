@@ -12,7 +12,8 @@ import {
   updateProductLink,
   getDashboardStats,
   getAllCustomers,
-  importLegacyCustomers
+  importLegacyCustomers,
+  deleteAllCustomers
 } from '@/app/actions/admin';
 import ProductsTab from './ProductsTab';
 import AnalyticsChart from '@/components/admin/AnalyticsChart';
@@ -375,6 +376,21 @@ export default function AdminDashboard() {
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '1rem' }}>
+                <button 
+                  className="btn btn-outline" 
+                  onClick={async () => {
+                    if (confirm('คุณแน่ใจหรือไม่ที่จะลบข้อมูลลูกค้าทั้งหมด? (เฉพาะลูกค้าทั่วไป ไม่รวมแอดมิน)')) {
+                      const res = await deleteAllCustomers();
+                      if (res.success) {
+                        alert(`ลบข้อมูลสำเร็จ ${res.count} รายการ กำลังเริ่มใหม่ได้เลยครับ!`);
+                        fetchData();
+                      }
+                    }
+                  }} 
+                  style={{ borderColor: '#ef4444', color: '#ef4444', padding: '0.5rem 1rem' }}
+                >
+                  🗑️ ล้างข้อมูลทั้งหมด (Reset)
+                </button>
                 <label className="btn btn-outline" style={{ cursor: 'pointer', borderColor: '#10b981', color: '#10b981', padding: '0.5rem 1rem' }}>
                   📥 นำเข้า Excel
                   <input type="file" accept=".xlsx, .xls" hidden onChange={handleFileUpload} />

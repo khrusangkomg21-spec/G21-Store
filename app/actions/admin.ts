@@ -270,6 +270,17 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
   return { success: true, count: imported };
 }
 
+export async function deleteAllCustomers() {
+  await checkAdmin();
+  
+  // Delete all users EXCEPT the admin themselves to prevent locking out
+  const result = await prisma.user.deleteMany({
+    where: { role: 'USER' }
+  });
+  
+  return { success: true, count: result.count };
+}
+
 export async function createProduct(data: { id: string, title: string, description?: string, price: number, category: string, grade: string, downloadUrl?: string, images?: string[], isActive?: boolean }) {
   await checkAdmin();
   const exists = await prisma.product.findUnique({ where: { id: data.id } });
