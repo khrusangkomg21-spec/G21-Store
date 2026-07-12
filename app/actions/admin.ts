@@ -248,8 +248,8 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
         existing.vipP1ToP3 = cust.vipP1ToP3 || existing.vipP1ToP3;
         existing.vipP4ToP6 = cust.vipP4ToP6 || existing.vipP4ToP6;
         existing.legacyPackages = newPackages || null;
-        existing.firstName = existing.firstName || fName;
-        existing.lastName = existing.lastName || lName;
+        existing.firstName = existing.firstName || fName || null;
+        existing.lastName = existing.lastName || lName || null;
       }
     }
   }
