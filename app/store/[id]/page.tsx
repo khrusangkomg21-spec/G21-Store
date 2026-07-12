@@ -54,7 +54,7 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
   const activePackage = currentPackages.find(p => p.id === selectedPackage);
 
   const handleAddToCart = (pkg: any) => {
-    if (!pkg) return;
+    if (!pkg || !pkg.downloadUrl) return;
     addToCart({
       id: pkg.id,
       subject: subject.title.split(' ')[0],
@@ -215,10 +215,15 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
               <button 
                 onClick={() => handleAddToCart(activePackage)}
                 className="btn btn-primary" 
-                style={{ padding: '1rem 2.5rem', fontSize: '1.25rem', opacity: activePackage ? 1 : 0.5, cursor: activePackage ? 'pointer' : 'not-allowed' }}
-                disabled={!activePackage}
+                style={{ 
+                  padding: '1rem 2.5rem', 
+                  fontSize: '1.25rem', 
+                  opacity: (activePackage && activePackage.downloadUrl) ? 1 : 0.5, 
+                  cursor: (activePackage && activePackage.downloadUrl) ? 'pointer' : 'not-allowed' 
+                }}
+                disabled={!activePackage || !activePackage.downloadUrl}
               >
-                เพิ่มลงตะกร้า
+                {activePackage && !activePackage.downloadUrl ? 'ยังไม่พร้อมจำหน่าย' : 'เพิ่มลงตะกร้า'}
               </button>
             </div>
           </div>
