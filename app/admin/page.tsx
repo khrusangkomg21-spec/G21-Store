@@ -377,32 +377,41 @@ export default function AdminDashboard() {
               <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', minWidth: '600px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
-                    <th style={{ padding: '1rem' }}>วันที่เพิ่มเข้าสู่ระบบ</th>
-                    <th style={{ padding: '1rem' }}>ชื่อเฟสบุ๊ค</th>
-                    <th style={{ padding: '1rem' }}>ชื่อ-สกุลจริง</th>
-                    <th style={{ padding: '1rem' }}>สถานะ VIP</th>
+                    <th style={{ padding: '1rem', whiteSpace: 'nowrap' }}>วันที่เพิ่มเข้าสู่ระบบ</th>
+                    <th style={{ padding: '1rem', whiteSpace: 'nowrap' }}>ชื่อเฟส</th>
+                    <th style={{ padding: '1rem', whiteSpace: 'nowrap' }}>ชื่อ</th>
+                    <th style={{ padding: '1rem', whiteSpace: 'nowrap' }}>นามสกุล</th>
+                    <th style={{ padding: '1rem', whiteSpace: 'nowrap' }}>VIP_P1-3</th>
+                    <th style={{ padding: '1rem', whiteSpace: 'nowrap' }}>VIP_P4-6</th>
+                    <th style={{ padding: '1rem', whiteSpace: 'nowrap' }}>แพ็กเกจ</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {customers.map(c => (
+                  {customers.map(c => {
+                    const nameParts = (c.name || '').split(' ');
+                    const firstName = nameParts[0] || '-';
+                    const lastName = nameParts.slice(1).join(' ') || '-';
+                    return (
                     <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <td style={{ padding: '1rem' }}>{new Date(c.createdAt).toLocaleDateString('th-TH')}</td>
                       <td style={{ padding: '1rem' }}>{c.facebookName || '-'}</td>
-                      <td style={{ padding: '1rem' }}>{c.name || '-'}</td>
-                      <td style={{ padding: '1rem' }}>
-                        {(c.vipP1ToP3 || c.isVip) && (
-                          <span style={{ background: 'linear-gradient(90deg, #4f46e5, #312e81)', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.8rem', marginRight: '0.5rem' }}>P1-3</span>
-                        )}
-                        {c.vipP4ToP6 && (
-                          <span style={{ background: 'linear-gradient(90deg, #10b981, #047857)', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.8rem' }}>P4-6</span>
-                        )}
-                        {(!c.vipP1ToP3 && !c.isVip && !c.vipP4ToP6) && '-'}
+                      <td style={{ padding: '1rem' }}>{firstName}</td>
+                      <td style={{ padding: '1rem' }}>{lastName}</td>
+                      <td style={{ padding: '1rem', textAlign: 'center' }}>
+                        {(c.vipP1ToP3 || c.isVip) ? <span style={{ background: 'linear-gradient(90deg, #4f46e5, #312e81)', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.8rem' }}>TRUE</span> : '-'}
+                      </td>
+                      <td style={{ padding: '1rem', textAlign: 'center' }}>
+                        {c.vipP4ToP6 ? <span style={{ background: 'linear-gradient(90deg, #10b981, #047857)', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.8rem' }}>TRUE</span> : '-'}
+                      </td>
+                      <td style={{ padding: '1rem', maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {c.legacyPackages || '-'}
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                   {customers.length === 0 && (
                     <tr>
-                      <td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>ยังไม่มีข้อมูลลูกค้า</td>
+                      <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>ยังไม่มีข้อมูลลูกค้า</td>
                     </tr>
                   )}
                 </tbody>

@@ -152,48 +152,64 @@ export async function getAllCustomers() {
 export async function importLegacyCustomers(customers: { facebookName: string, name?: string, vipP1ToP3: boolean, vipP4ToP6: boolean, legacyPackages?: string }[]) {
   await checkAdmin();
   
+  // 1. Prepare fast lookups
+  const fbNames = customers.map(c => c.facebookName?.trim()).filter(Boolean) as string[];
+  const realNames = customers.map(c => c.name?.trim()).filter(Boolean) as string[];
+  
+  // Fetch ALL existing in one go (prevents Vercel 10s timeout!)
+  const existingUsers = await prisma.user.findMany({
+    where: {
+      OR: [
+        { facebookName: { in: fbNames, not: '' } },
+        { name: { in: realNames, not: '' } }
+      ]
+    }
+  });
+
   let imported = 0;
+  const updates = [];
+  const creates = [];
+
   for (const cust of customers) {
     const fbName = cust.facebookName?.trim();
     const realName = cust.name?.trim();
     
     if (!fbName && !realName) continue;
     
-    // Check if exists
+    // Find existing from our pre-fetched list
     let existing = null;
-    if (fbName) {
-      existing = await prisma.user.findFirst({
-        where: { facebookName: fbName }
-      });
-    }
-    if (!existing && realName) {
-      existing = await prisma.user.findFirst({
-        where: { name: realName }
-      });
-    }
+    if (fbName) existing = existingUsers.find(u => u.facebookName === fbName);
+    if (!existing && realName) existing = existingUsers.find(u => u.name === realName);
     
     if (!existing) {
-      await prisma.user.create({
-        data: {
-          email: `legacy_${Date.now()}_${Math.floor(Math.random() * 10000)}@g21.local`,
-          facebookName: fbName || null,
-          name: realName || null,
-          isVip: cust.vipP1ToP3, // Legacy mapping
-          vipP1ToP3: cust.vipP1ToP3,
-          vipP4ToP6: cust.vipP4ToP6,
-          legacyPackages: cust.legacyPackages || null,
-          password: 'legacy_user'
-        }
+      creates.push({
+        email: `legacy_${Date.now()}_${Math.floor(Math.random() * 100000)}@g21.local`,
+        facebookName: fbName || null,
+        name: realName || null,
+        isVip: cust.vipP1ToP3, // Legacy mapping
+        vipP1ToP3: cust.vipP1ToP3,
+        vipP4ToP6: cust.vipP4ToP6,
+        legacyPackages: cust.legacyPackages || null,
+        password: 'legacy_user'
       });
       imported++;
+      
+      // Add to existingUsers in-memory to prevent duplicates within the same Excel file
+      existingUsers.push({
+        id: `temp-${Date.now()}-${Math.random()}`,
+        facebookName: fbName || null,
+        name: realName || null,
+        isVip: cust.vipP1ToP3,
+        vipP1ToP3: cust.vipP1ToP3,
+        vipP4ToP6: cust.vipP4ToP6,
+        legacyPackages: cust.legacyPackages || null,
+        email: '', password: null, role: 'USER', phone: null, vipNumber: null, resetToken: null, resetTokenExpiry: null, createdAt: new Date(), updatedAt: new Date()
+      });
     } else {
-      // Update existing customer (VIP status and append new packages)
       let newPackages = existing.legacyPackages || '';
       if (cust.legacyPackages) {
         const existingPkgArray = newPackages.split(',').map(p => p.trim()).filter(Boolean);
         const newPkgArray = cust.legacyPackages.split(',').map(p => p.trim()).filter(Boolean);
-        
-        // Merge without duplicates
         const mergedSet = new Set([...existingPkgArray, ...newPkgArray]);
         newPackages = Array.from(mergedSet).join(',');
       }
@@ -204,19 +220,34 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
       const shouldUpdateName = cust.name && !existing.name;
       
       if (shouldUpdateVipP1 || shouldUpdateVipP4 || shouldUpdatePackages || shouldUpdateName || (!existing.isVip && cust.vipP1ToP3)) {
-        await prisma.user.update({
-          where: { id: existing.id },
-          data: { 
-            isVip: cust.vipP1ToP3 || existing.isVip,
-            vipP1ToP3: cust.vipP1ToP3 || existing.vipP1ToP3,
-            vipP4ToP6: cust.vipP4ToP6 || existing.vipP4ToP6,
-            name: existing.name || cust.name,
-            legacyPackages: newPackages || null
-          }
-        });
+        updates.push(
+          prisma.user.update({
+            where: { id: existing.id },
+            data: { 
+              isVip: cust.vipP1ToP3 || existing.isVip,
+              vipP1ToP3: cust.vipP1ToP3 || existing.vipP1ToP3,
+              vipP4ToP6: cust.vipP4ToP6 || existing.vipP4ToP6,
+              name: existing.name || cust.name,
+              legacyPackages: newPackages || null
+            }
+          })
+        );
         imported++;
+        
+        // Update in-memory to prevent duplicate updates
+        existing.vipP1ToP3 = cust.vipP1ToP3 || existing.vipP1ToP3;
+        existing.vipP4ToP6 = cust.vipP4ToP6 || existing.vipP4ToP6;
+        existing.legacyPackages = newPackages || null;
       }
     }
+  }
+  
+  // Execute bulk DB operations
+  if (creates.length > 0) {
+    await prisma.user.createMany({ data: creates, skipDuplicates: true });
+  }
+  if (updates.length > 0) {
+    await Promise.all(updates);
   }
   
   return { success: true, count: imported };
