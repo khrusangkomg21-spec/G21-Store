@@ -5,7 +5,7 @@ import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 
-const secretKey = 'g21-secret-key-mockup-for-mvp'; // In production, use process.env.JWT_SECRET
+const secretKey = process.env.JWT_SECRET || 'g21-secret-key-fallback-do-not-use-in-prod';
 const key = new TextEncoder().encode(secretKey);
 
 export async function checkLegacyCustomer(facebookName: string) {
