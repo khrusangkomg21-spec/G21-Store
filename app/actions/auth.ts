@@ -4,16 +4,24 @@ import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
-import { redirect } from 'next/navigation';
 
-const secretKey = 'g21-secret-key-mockup-for-mvp';
+const secretKey = 'g21-secret-key-mockup-for-mvp'; // In production, use process.env.JWT_SECRET
 const key = new TextEncoder().encode(secretKey);
+
+export async function checkLegacyCustomer(facebookName: string) {
+  if (!facebookName) return false;
+  const existing = await prisma.user.findFirst({
+    where: { facebookName, email: { startsWith: 'legacy_' } }
+  });
+  return !!existing;
+}
 
 export async function register(formData: FormData) {
   try {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
     const name = formData.get('name') as string;
+    const facebookName = formData.get('facebookName') as string;
 
     if (!email || !password) {
       return { error: 'กรุณากรอกอีเมลและรหัสผ่าน' };
@@ -25,16 +33,68 @@ export async function register(formData: FormData) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    let user;
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        name,
-        password: hashedPassword,
-        role: 'USER',
-      },
-    });
+    if (facebookName) {
+      const legacyUser = await prisma.user.findFirst({
+        where: { facebookName, email: { startsWith: 'legacy_' } }
+      });
 
+      if (legacyUser) {
+        // Upgrade legacy user to normal user
+        user = await prisma.user.update({
+          where: { id: legacyUser.id },
+          data: {
+            email,
+            name: name || legacyUser.name,
+            password: hashedPassword,
+            role: 'USER',
+          }
+        });
+        
+        // Auto create orders for legacy packages
+        if (legacyUser.legacyPackages) {
+          const packages = legacyUser.legacyPackages.split(',').map(p => p.trim()).filter(Boolean);
+          if (packages.length > 0) {
+            // Find valid products
+            const validProducts = await prisma.product.findMany({
+              where: { id: { in: packages } }
+            });
+            
+            if (validProducts.length > 0) {
+              const total = validProducts.reduce((sum, p) => sum + p.price, 0);
+              
+              // Create an approved order
+              await prisma.order.create({
+                data: {
+                  orderNumber: `LEGACY-${Date.now()}`,
+                  userId: user.id,
+                  totalAmount: total,
+                  status: 'COMPLETED',
+                  items: {
+                    create: validProducts.map(p => ({
+                      productId: p.id,
+                      price: p.price,
+                      quantity: 1
+                    }))
+                  }
+                }
+              });
+            }
+          }
+        }
+      } else {
+        user = await prisma.user.create({
+          data: { email, name, password: hashedPassword, role: 'USER', facebookName },
+        });
+      }
+    } else {
+      user = await prisma.user.create({
+        data: { email, name, password: hashedPassword, role: 'USER' },
+      });
+    }
+
+    // Automatically log in after registration
     await setSession(user.id, user.email, user.role);
 
     return { success: true };
@@ -71,6 +131,8 @@ export async function login(formData: FormData) {
     return { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' };
   }
 }
+
+import { redirect } from 'next/navigation';
 
 export async function logout() {
   (await cookies()).delete('session');
