@@ -60,7 +60,7 @@ export default async function VIPRoom() {
 
   return (
     <div className="min-h-screen bg-[#0F172A] text-white selection:bg-[#FACC15] selection:text-black">
-      <Navbar />
+      <Navbar session={session} />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-32">
         <div className="bg-gradient-to-r from-[#FACC15]/20 to-[#F59E0B]/20 border border-[#FACC15]/30 rounded-2xl p-8 mb-12 shadow-[0_0_40px_rgba(250,204,21,0.1)] backdrop-blur-sm">
