@@ -36,6 +36,8 @@ model Product {
   price       Float
   category    String
   grade       String
+  images      String[] // Array of image URLs for gallery (up to 10)
+  isActive    Boolean  @default(true) // For turning on/off products
   downloadUrl String?  // URL from OneDrive / Google Drive for file delivery
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -49,6 +51,8 @@ model Order {
   user          User?       @relation(fields: [userId], references: [id])
   guestEmail    String?
   totalAmount   Float
+  discount      Float       @default(0) // Discount amount applied
+  discountCode  String?     // Reason or code e.g. "G21_PROMO_21"
   status        String      @default("PENDING") // PENDING, APPROVED, REJECTED
   slipImageUrl  String?     // URL to the uploaded payment slip
   createdAt     DateTime    @default(now())
