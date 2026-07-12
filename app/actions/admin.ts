@@ -84,7 +84,7 @@ export async function getCompletedOrders() {
       user: true
     },
     orderBy: { updatedAt: 'desc' },
-    take: 500 // โหลดประวัติย้อนหลังได้เยอะขึ้น
+    take: 500 // Increased limit to allow filtering historical orders
   });
 }
 
@@ -140,7 +140,7 @@ export async function getAllCustomers() {
   });
 }
 
-export async function importLegacyCustomers(customers: { facebookName: string, name?: string, isVip: boolean }[]) {
+export async function importLegacyCustomers(customers: { facebookName: string, name?: string, isVip: boolean, legacyPackages?: string }[]) {
   await checkAdmin();
   
   let imported = 0;
@@ -159,17 +159,38 @@ export async function importLegacyCustomers(customers: { facebookName: string, n
           facebookName: cust.facebookName,
           name: cust.name || null,
           isVip: cust.isVip,
+          legacyPackages: cust.legacyPackages || null,
           password: 'legacy_user'
         }
       });
       imported++;
-    } else if (cust.isVip && !existing.isVip) {
-      // Upgrade existing to VIP
-      await prisma.user.update({
-        where: { id: existing.id },
-        data: { isVip: true, name: cust.name || existing.name }
-      });
-      imported++;
+    } else {
+      // Update existing customer (VIP status and append new packages)
+      let newPackages = existing.legacyPackages || '';
+      if (cust.legacyPackages) {
+        const existingPkgArray = newPackages.split(',').map(p => p.trim()).filter(Boolean);
+        const newPkgArray = cust.legacyPackages.split(',').map(p => p.trim()).filter(Boolean);
+        
+        // Merge without duplicates
+        const mergedSet = new Set([...existingPkgArray, ...newPkgArray]);
+        newPackages = Array.from(mergedSet).join(',');
+      }
+      
+      const shouldUpdateVip = cust.isVip && !existing.isVip;
+      const shouldUpdatePackages = newPackages !== existing.legacyPackages;
+      const shouldUpdateName = cust.name && !existing.name;
+      
+      if (shouldUpdateVip || shouldUpdatePackages || shouldUpdateName) {
+        await prisma.user.update({
+          where: { id: existing.id },
+          data: { 
+            isVip: cust.isVip || existing.isVip,
+            name: existing.name || cust.name,
+            legacyPackages: newPackages || null
+          }
+        });
+        imported++;
+      }
     }
   }
   
