@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { getProductsByCategory } from '@/app/actions/product';
 import Link from 'next/link';
+import { getDirectImageUrl } from '@/lib/imageUtils';
 
 // Category Definitions
 const subjectDb: Record<string, any> = {
@@ -116,26 +117,29 @@ export default function ProductDetails({ params }: { params: Promise<{ id: strin
           <div className="glass-card" style={{ padding: '2rem', marginBottom: '2rem' }}>
             <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>ตัวอย่างผลงาน</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', maxHeight: '500px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-              {currentGallery.map((src: string, idx: number) => (
-                <a 
-                  key={idx} 
-                  href={src} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  style={{ 
-                    display: 'block', 
-                    width: '100%',
-                    aspectRatio: '16/9', 
-                    backgroundImage: `url(${src})`, 
-                    backgroundSize: 'cover', 
-                    backgroundPosition: 'top center', 
-                    borderRadius: '0.5rem', 
-                    cursor: 'zoom-in', 
-                    border: '1px solid var(--border-color)', 
-                    boxShadow: '0 2px 5px rgba(0,0,0,0.2)' 
-                  }}
-                ></a>
-              ))}
+              {currentGallery.map((src: string, idx: number) => {
+                const bgUrl = getDirectImageUrl(src);
+                return (
+                  <a 
+                    key={idx} 
+                    href={src} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    style={{ 
+                      display: 'block', 
+                      width: '100%',
+                      aspectRatio: '16/9', 
+                      backgroundImage: `url("${bgUrl}")`, 
+                      backgroundSize: 'cover', 
+                      backgroundPosition: 'top center', 
+                      borderRadius: '0.5rem', 
+                      cursor: 'zoom-in', 
+                      border: '1px solid var(--border-color)', 
+                      boxShadow: '0 2px 5px rgba(0,0,0,0.2)' 
+                    }}
+                  ></a>
+                );
+              })}
             </div>
             <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '1rem' }}>*คลิกที่รูปเพื่อขยายใหญ่ (เลื่อนดูรูปเพิ่มเติมได้)</p>
           </div>

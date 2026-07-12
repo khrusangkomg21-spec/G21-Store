@@ -3,6 +3,7 @@ import { getSession } from '@/app/actions/auth';
 import prisma from '@/lib/prisma';
 import Navbar from '@/app/components/Navbar';
 import Link from 'next/link';
+import { getDirectImageUrl } from '@/lib/imageUtils';
 
 export const metadata = {
   title: 'ห้องลับ VIP ป.1-3 | G21 Lesson Plan Store',
@@ -85,7 +86,7 @@ export default async function VIPRoomP13() {
                 <div key={product.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
                   {product.images && product.images.length > 0 ? (
                     <div style={{ height: '180px', borderRadius: '0.5rem', marginBottom: '1.5rem', overflow: 'hidden' }}>
-                      <img src={product.images[0]} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={getDirectImageUrl(product.images[0])} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', background: 'rgba(212, 175, 55, 0.1)', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
@@ -130,7 +131,7 @@ export default async function VIPRoomP13() {
               <div key={product.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
                 {product.images && product.images.length > 0 ? (
                   <div style={{ height: '180px', borderRadius: '0.5rem', marginBottom: '1.5rem', overflow: 'hidden' }}>
-                    <img src={product.images[0]} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={getDirectImageUrl(product.images[0])} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', background: 'rgba(212, 175, 55, 0.1)', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>

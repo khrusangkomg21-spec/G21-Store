@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getMyFiles } from '@/app/actions/user';
 import Link from 'next/link';
+import { getDirectImageUrl } from '@/lib/imageUtils';
 
 export default function MyFiles() {
   const [files, setFiles] = useState<any[]>([]);
@@ -77,7 +78,7 @@ export default function MyFiles() {
             <div key={file.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
               {file.images && file.images.length > 0 ? (
                 <div style={{ height: '180px', borderRadius: '0.5rem', marginBottom: '1.5rem', overflow: 'hidden' }}>
-                  <img src={file.images[0]} alt={file.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={getDirectImageUrl(file.images[0])} alt={file.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
