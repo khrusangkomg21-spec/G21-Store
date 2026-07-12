@@ -182,9 +182,14 @@ export default function Checkout() {
               <span style={{ color: 'var(--text-muted)' }}>บาท</span>
             </div>
             
-            <p style={{ color: '#ef4444', fontSize: '1.1rem', fontWeight: 700, marginTop: '1rem', background: 'rgba(239, 68, 68, 0.1)', display: 'inline-block', padding: '0.5rem 1.5rem', borderRadius: '1rem' }}>
-              * โอนยอด {total.toFixed(2)} บาท ถ้วนเท่านั้น
-            </p>
+            <div style={{ background: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '0.75rem', marginTop: '1rem', display: 'inline-block', border: '1px dashed #ef4444' }}>
+              <p style={{ color: '#ef4444', fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>
+                * จำเป็นต้องโอนยอด {total.toFixed(2)} บาท ถ้วนเท่านั้น
+              </p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem', marginBottom: 0, maxWidth: '350px' }}>
+                (ยอดเศษสตางค์มีไว้เพื่อให้ระบบ AI ตรวจสอบสลิปอัตโนมัติ หากโอนผิดแม้แต่ 1 สตางค์ ระบบจะไม่สามารถส่งลิงก์ดาวน์โหลดให้ได้)
+              </p>
+            </div>
             
             <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px dashed var(--border-color)' }}>
               <p style={{ color: 'var(--text-main)', fontSize: '1.1rem', marginBottom: '1rem', fontWeight: 500 }}>
@@ -222,6 +227,13 @@ export default function Checkout() {
               >
                 {isSubmitting ? 'กำลังตรวจสอบ...' : 'ตรวจสอบยอดเงินอัตโนมัติ (Mock)'}
               </button>
+              
+              <p style={{ color: '#f59e0b', fontSize: '0.9rem', marginTop: '1rem', marginBottom: 0 }}>
+                ⚠️ หากคุณครูเผลอโอนยอดผิดไปแล้ว ไม่ต้องตกใจครับ<br/>
+                กรุณาเลื่อนลงไปแนบสลิปที่ <strong>"แจ้งโอนด้วยตนเอง"</strong> ด้านล่างแทน<br/>
+                แอดมินจะทำการตรวจสอบและอนุมัติให้โดยเร็วที่สุดครับ
+              </p>
+            </div>
             </div>
           </div>
 
