@@ -101,7 +101,7 @@ export async function approveOrder(orderId: string) {
   });
   
   // Get host dynamically
-  const headersList = headers();
+  const headersList = await headers();
   const host = headersList.get('host') || 'g21-store.com';
   const protocol = host.includes('localhost') ? 'http' : 'https';
   
