@@ -11,7 +11,6 @@ import { getActivePromoDiscount } from '@/lib/promotions';
 export async function createOrder(formData: FormData) {
   try {
     const session = await getSession();
-    const guestEmail = formData.get('guestEmail') as string;
     const cartDataStr = formData.get('cart') as string;
     const slipFile = formData.get('slip') as File;
     const clientTotalAmount = parseFloat(formData.get('totalAmount') as string);
@@ -22,8 +21,8 @@ export async function createOrder(formData: FormData) {
       return { error: 'ข้อมูลไม่ครบถ้วน กรุณาแนบสลิปโอนเงิน' };
     }
 
-    if (!session && !guestEmail) {
-      return { error: 'กรุณากรอกอีเมลเพื่อรับลิงก์ดาวน์โหลด (สำหรับผู้ที่ไม่ได้ล็อกอิน)' };
+    if (!session || !session.userId) {
+      return { error: 'กรุณาล็อกอินก่อนสั่งซื้อสินค้าครับ' };
     }
 
     const cartData = JSON.parse(cartDataStr);
@@ -81,8 +80,7 @@ export async function createOrder(formData: FormData) {
         discountCode: promo ? promo.name : discountCode,
         slipImageUrl,
         status: isAutoApproved ? 'COMPLETED' : 'PENDING',
-        userId: session?.userId as string | undefined,
-        guestEmail: session ? undefined : guestEmail,
+        userId: session.userId,
         items: {
           create: orderItemsData
         }
@@ -96,7 +94,7 @@ export async function createOrder(formData: FormData) {
     const orderDetails = `
 📦 มีออเดอร์ใหม่! ${isAutoApproved ? '(อนุมัติอัตโนมัติ ✅)' : '(รอตรวจสอบ ⏳)'}
 รหัส: ${orderNumber}
-ลูกค้า: ${session?.userId ? 'สมาชิก' : guestEmail}
+ลูกค้า: สมาชิก (ID: ${session.userId.slice(-6)})
 ยอดโอน: ฿${realTotalAmount}
 ส่วนลด: ฿${realDiscount} ${promo ? `(${promo.name})` : (discountCode ? `(${discountCode})` : '')}
 รายการ: ${cartData.length} รายการ`;
@@ -106,7 +104,7 @@ export async function createOrder(formData: FormData) {
     // Send Delivery Email if Auto-Approved
     if (isAutoApproved) {
       const downloadLink = 'https://g21-store.com/downloads/' + order.id;
-      const customerEmail = session ? order.user?.email : guestEmail;
+      const customerEmail = order.user?.email;
       if (customerEmail) {
         await sendDeliveryEmail(customerEmail, order.orderNumber, downloadLink);
       }

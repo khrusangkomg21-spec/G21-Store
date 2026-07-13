@@ -89,6 +89,8 @@ export async function getCompletedOrders() {
   });
 }
 
+import { headers } from 'next/headers';
+
 export async function approveOrder(orderId: string) {
   await checkAdmin();
   
@@ -98,7 +100,12 @@ export async function approveOrder(orderId: string) {
     include: { user: true }
   });
   
-  const downloadLink = 'https://g21-store.com/downloads/' + order.id; // Replace with actual path in future
+  // Get host dynamically
+  const headersList = headers();
+  const host = headersList.get('host') || 'g21-store.com';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  
+  const downloadLink = `${protocol}://${host}/downloads/${order.id}`;
   const customerEmail = order.guestEmail || order.user?.email;
   
   if (customerEmail) {
