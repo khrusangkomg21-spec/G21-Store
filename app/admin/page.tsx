@@ -8,6 +8,7 @@ import {
   getCompletedOrders,
   approveOrder, 
   rejectOrder, 
+  deleteOrder,
   getAllProducts, 
   updateProductLink,
   getDashboardStats,
@@ -72,6 +73,13 @@ export default function AdminDashboard() {
   const handleReject = async (orderId: string) => {
     if (confirm('ยืนยันการปฏิเสธคำสั่งซื้อนี้ (ยกเลิก)?')) {
       await rejectOrder(orderId);
+      fetchData();
+    }
+  };
+
+  const handleDelete = async (orderId: string) => {
+    if (confirm('⚠️ คำเตือน: คุณต้องการลบคำสั่งซื้อนี้ออกจากฐานข้อมูลอย่างถาวรใช่หรือไม่? (ลบแล้วไม่สามารถกู้คืนได้ และจะหายไปจากสถิติยอดขาย)')) {
+      await deleteOrder(orderId);
       fetchData();
     }
   };
@@ -300,6 +308,14 @@ export default function AdminDashboard() {
                         >
                           ปฏิเสธ
                         </button>
+                        <button 
+                          className="btn" 
+                          style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid #ef4444' }}
+                          onClick={() => handleDelete(order.id)}
+                          title="ลบข้อมูลทิ้งถาวร"
+                        >
+                          🗑️ ลบ
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -340,6 +356,7 @@ export default function AdminDashboard() {
                     <th style={{ padding: '1rem' }}>ผู้ใช้ / อีเมล</th>
                     <th style={{ padding: '1rem' }}>ยอดโอน</th>
                     <th style={{ padding: '1rem' }}>สถานะ</th>
+                    <th style={{ padding: '1rem' }}>จัดการ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -350,11 +367,21 @@ export default function AdminDashboard() {
                       <td style={{ padding: '1rem' }}>{order.guestEmail || order.user?.facebookName || order.user?.email}</td>
                       <td style={{ padding: '1rem', color: 'var(--primary)', fontWeight: 600 }}>฿{order.totalAmount}</td>
                       <td style={{ padding: '1rem', color: '#10b981' }}>อนุมัติแล้ว</td>
+                      <td style={{ padding: '1rem' }}>
+                        <button 
+                          className="btn" 
+                          style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid #ef4444' }}
+                          onClick={() => handleDelete(order.id)}
+                          title="ลบข้อมูลทิ้งถาวร"
+                        >
+                          🗑️ ลบ
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {filteredCompletedOrders.length === 0 && (
                     <tr>
-                      <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>ไม่มีข้อมูลในเดือนที่เลือก</td>
+                      <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>ไม่มีข้อมูลในเดือนที่เลือก</td>
                     </tr>
                   )}
                 </tbody>

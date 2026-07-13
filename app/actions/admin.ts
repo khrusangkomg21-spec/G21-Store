@@ -113,10 +113,22 @@ export async function rejectOrder(orderId: string) {
   
   await prisma.order.update({
     where: { id: orderId },
-    data: { status: 'CANCELLED' }
+    data: { status: 'REJECTED' }
   });
+}
+
+export async function deleteOrder(orderId: string) {
+  await checkAdmin();
   
-  return { success: true };
+  // Delete order items first due to foreign key constraints
+  await prisma.orderItem.deleteMany({
+    where: { orderId: orderId }
+  });
+
+  // Then delete the order
+  await prisma.order.delete({
+    where: { id: orderId }
+  });
 }
 
 export async function getAllProducts() {
