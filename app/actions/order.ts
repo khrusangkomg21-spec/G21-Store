@@ -2,8 +2,6 @@
 
 import prisma from '@/lib/prisma';
 import { getSession } from './auth';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
 import { sendLineNotify } from '@/lib/lineNotify';
 import { checkSlipWithSlipOK } from '@/lib/slipok';
 import { sendDeliveryEmail } from '@/lib/email';
@@ -60,25 +58,14 @@ export async function createOrder(formData: FormData) {
     const realDiscount = promo ? promo.amount : 0;
     const realTotalAmount = Math.floor(realSubtotal - realDiscount);
 
-    // Save the slip image
+    // Save the slip image as Base64 (Vercel serverless compatibility)
     const bytes = await slipFile.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
-    // Ensure directory exists
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'slips');
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (e) {
-      // ignore if exists
-    }
-    
-    const uniqueFileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(slipFile.name)}`;
-    const slipPath = path.join(uploadDir, uniqueFileName);
-    await writeFile(slipPath, buffer);
-    const slipImageUrl = `/uploads/slips/${uniqueFileName}`;
+    const base64Image = `data:${slipFile.type || 'image/jpeg'};base64,${buffer.toString('base64')}`;
+    const slipImageUrl = base64Image;
 
     // Verify slip with SlipOK API using SERVER CALCULATED amount!
-    const slipVerification = await checkSlipWithSlipOK(slipPath, realTotalAmount);
+    const slipVerification = await checkSlipWithSlipOK(slipFile, realTotalAmount);
     
     // Auto approve ONLY if SlipOK verifies the transfer AND the amount matches our REAL total
     const isAutoApproved = slipVerification.success && slipVerification.data?.success && slipVerification.data?.amount >= realTotalAmount;
@@ -127,8 +114,8 @@ export async function createOrder(formData: FormData) {
 
     return { success: true, orderId: order.id, orderNumber: order.orderNumber };
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create Order Error:', error);
-    return { error: 'เกิดข้อผิดพลาดในการสร้างคำสั่งซื้อ กรุณาลองใหม่อีกครั้ง' };
+    return { error: 'เกิดข้อผิดพลาดในการสร้างคำสั่งซื้อ: ' + (error.message || String(error)) };
   }
 }

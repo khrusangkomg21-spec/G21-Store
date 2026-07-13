@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-export async function checkSlipWithSlipOK(slipFilePath: string, expectedAmount: number) {
+export async function checkSlipWithSlipOK(slipFileBlob: Blob, expectedAmount: number) {
   const apiKey = process.env.SLIPOK_API_KEY;
   const branchId = process.env.SLIPOK_BRANCH_ID; // Your GSB account branch/merchant ID from SlipOK
   
@@ -20,9 +20,7 @@ export async function checkSlipWithSlipOK(slipFilePath: string, expectedAmount: 
 
   try {
     const formData = new FormData();
-    const fileBuffer = fs.readFileSync(slipFilePath);
-    const blob = new Blob([fileBuffer], { type: 'image/jpeg' });
-    formData.append('files', blob, 'slip.jpg');
+    formData.append('files', slipFileBlob, 'slip.jpg');
 
     const response = await fetch('https://api.slipok.com/api/line/apikey/' + branchId, {
       method: 'POST',
