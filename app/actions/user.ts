@@ -26,10 +26,27 @@ export async function getMyFiles() {
     orderBy: { updatedAt: 'desc' }
   });
 
-  // Extract all purchased products
+  // Get the user to check legacyPackages
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId as string },
+    select: { legacyPackages: true }
+  });
+
+  // Extract all purchased products from new system orders
   const purchasedProducts = orders.flatMap(order => 
     order.items.map(item => item.product)
   );
+
+  // If user has legacy packages, fetch those products too
+  if (user && user.legacyPackages) {
+    const legacyProductIds = user.legacyPackages.split(',').map(id => id.trim()).filter(id => id.length > 0);
+    if (legacyProductIds.length > 0) {
+      const legacyProducts = await prisma.product.findMany({
+        where: { id: { in: legacyProductIds } }
+      });
+      purchasedProducts.push(...legacyProducts);
+    }
+  }
 
   // Remove duplicates just in case
   const uniqueProductsMap = new Map();
