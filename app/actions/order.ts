@@ -5,7 +5,6 @@ import { getSession } from './auth';
 import { sendLineNotify } from '@/lib/lineNotify';
 import { checkSlipWithSlipOK } from '@/lib/slipok';
 import { sendDeliveryEmail } from '@/lib/email';
-
 import { getActivePromoDiscount } from '@/lib/promotions';
 
 export async function createOrder(formData: FormData) {
@@ -26,34 +25,24 @@ export async function createOrder(formData: FormData) {
     }
 
     const cartData = JSON.parse(cartDataStr);
-    if (!Array.isArray(cartData) || cartData.length === 0) {
-      return { error: 'ไม่มีสินค้าในตะกร้า' };
-    }
-
-    // 🔴 CRITICAL FIX: Calculate real total from DB
-    const productIds = cartData.map((item: any) => item.id);
-    const dbProducts = await prisma.product.findMany({
-      where: { id: { in: productIds } }
-    });
-
+    
+    // Check if promo code is valid on the server
+    const promo = discountCode ? await getActivePromoDiscount(discountCode) : null;
+    
+    // Calculate subtotal from cart to prevent client-side tampering
     let realSubtotal = 0;
     const orderItemsData = [];
     
     for (const item of cartData) {
-      const dbProduct = dbProducts.find(p => p.id === item.id);
-      if (dbProduct) {
-        realSubtotal += dbProduct.price;
-        orderItemsData.push({
-          productId: dbProduct.id,
-          price: dbProduct.price,
-          quantity: 1
-        });
-      } else {
-        return { error: `ไม่พบสินค้า: ${item.id} ในระบบ` };
-      }
+      const product = await prisma.product.findUnique({ where: { id: item.id } });
+      if (!product) continue;
+      realSubtotal += product.price;
+      orderItemsData.push({
+        productId: product.id,
+        price: product.price
+      });
     }
 
-    const promo = getActivePromoDiscount(realSubtotal);
     const realDiscount = promo ? promo.amount : 0;
     const realTotalAmount = Math.floor(realSubtotal - realDiscount);
 
@@ -69,8 +58,8 @@ export async function createOrder(formData: FormData) {
     // Auto approve ONLY if SlipOK verifies the transfer AND the amount matches our REAL total
     const isAutoApproved = slipVerification.success && slipVerification.data?.success && slipVerification.data?.amount >= realTotalAmount;
 
-    // Create Order in DB
-    const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
+    // Create Order in Database
+    const orderNumber = `ORD-${Math.floor(Math.random() * 1000000)}-${new Date().getMilliseconds()}`;
     
     const order = await prisma.order.create({
       data: {
@@ -80,7 +69,7 @@ export async function createOrder(formData: FormData) {
         discountCode: promo ? promo.name : discountCode,
         slipImageUrl,
         status: isAutoApproved ? 'COMPLETED' : 'PENDING',
-        userId: session.userId,
+        userId: session.userId as string,
         items: {
           create: orderItemsData
         }
@@ -94,7 +83,7 @@ export async function createOrder(formData: FormData) {
     const orderDetails = `
 📦 มีออเดอร์ใหม่! ${isAutoApproved ? '(อนุมัติอัตโนมัติ ✅)' : '(รอตรวจสอบ ⏳)'}
 รหัส: ${orderNumber}
-ลูกค้า: สมาชิก (ID: ${session.userId.slice(-6)})
+ลูกค้า: สมาชิก (ID: ${(session.userId as string).slice(-6)})
 ยอดโอน: ฿${realTotalAmount}
 ส่วนลด: ฿${realDiscount} ${promo ? `(${promo.name})` : (discountCode ? `(${discountCode})` : '')}
 รายการ: ${cartData.length} รายการ`;
