@@ -317,24 +317,43 @@ export async function deleteAllCustomers() {
 }
 
 export async function createProduct(data: { id: string, title: string, description?: string, price: number, category: string, grade: string, downloadUrl?: string, images?: string[], isActive?: boolean }) {
-  await checkAdmin();
-  const exists = await prisma.product.findUnique({ where: { id: data.id } });
-  if (exists) throw new Error('รหัสสินค้านี้มีอยู่แล้วในระบบ');
-  
-  return await prisma.product.create({ data });
+  try {
+    await checkAdmin();
+    const exists = await prisma.product.findUnique({ where: { id: data.id } });
+    if (exists) return { error: 'รหัสสินค้านี้มีอยู่แล้วในระบบ' };
+    
+    await prisma.product.create({ data });
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || 'เกิดข้อผิดพลาดในการสร้างสินค้า' };
+  }
 }
 
 export async function updateProduct(id: string, data: { title?: string, description?: string, price?: number, category?: string, grade?: string, downloadUrl?: string, images?: string[], isActive?: boolean }) {
-  await checkAdmin();
-  return await prisma.product.update({
-    where: { id },
-    data
-  });
+  try {
+    await checkAdmin();
+    
+    // Remove id from data if it exists to prevent Prisma errors
+    const { id: _removedId, ...updateData } = data as any;
+    
+    await prisma.product.update({
+      where: { id },
+      data: updateData
+    });
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || 'เกิดข้อผิดพลาดในการอัปเดตสินค้า' };
+  }
 }
 
 export async function deleteProduct(id: string) {
-  await checkAdmin();
-  return await prisma.product.delete({
-    where: { id }
-  });
+  try {
+    await checkAdmin();
+    await prisma.product.delete({
+      where: { id }
+    });
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || 'เกิดข้อผิดพลาดในการลบสินค้า' };
+  }
 }

@@ -68,10 +68,16 @@ export default function ProductsTab({ products, fetchData }: { products: any[], 
       };
 
       if (!isNew) {
-        await updateProduct(formData.id, payload);
+        const result = await updateProduct(formData.id, payload) as any;
+        if (result && result.error) {
+          throw new Error(result.error);
+        }
         alert('อัปเดตสินค้าสำเร็จ');
       } else {
-        await createProduct(payload);
+        const result = await createProduct(payload) as any;
+        if (result && result.error) {
+          throw new Error(result.error);
+        }
         alert('เพิ่มสินค้าสำเร็จ');
       }
       setIsEditing(false);
