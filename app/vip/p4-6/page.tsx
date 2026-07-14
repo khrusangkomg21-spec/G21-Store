@@ -39,15 +39,27 @@ export default async function VIPRoomP46() {
     ]
   });
 
-  // Group by category for nicer display
+  const subjectNames: Record<string, string> = {
+    'sci': 'วิทยาศาสตร์ สิ่งแวดล้อม และเทคโนโลยี',
+    'soc': 'สังคมและความเป็นพลเมือง',
+    'eco': 'เศรษฐกิจและการเงิน',
+    'hea': 'สุขภาพกายและจิต',
+    'art': 'ศิลปะและวัฒนธรรมเพื่อสุนทรีภาพ',
+    'eng': 'ภาษาอังกฤษ',
+    'math': 'คณิตศาสตร์',
+    'thai': 'ภาษาไทย',
+    'hist': 'ประวัติศาสตร์'
+  };
+
   const categoryMap: Record<string, typeof products> = {
-    'สังคมศึกษา': [],
-    'คณิตศาสตร์': [],
-    'วิทยาศาสตร์': [],
-    'ภาษาไทย': [],
-    'ประวัติศาสตร์': [],
-    'สุขศึกษาและพลศึกษา': [],
-    'เศรษฐศาสตร์': [],
+    'soc': [],
+    'math': [],
+    'sci': [],
+    'thai': [],
+    'hist': [],
+    'hea': [],
+    'eco': [],
+    'art': [],
   };
 
   const uncategorized: typeof products = [];
@@ -60,11 +72,21 @@ export default async function VIPRoomP46() {
     }
   });
 
+  const sortItems = (items: any[]) => {
+    return [...items].sort((a, b) => {
+      const gradeOrder: Record<string, number> = { 'P1': 1, 'P2': 2, 'P3': 3, 'P4': 4, 'P5': 5, 'P6': 6 };
+      const gradeA = gradeOrder[a.grade] || 99;
+      const gradeB = gradeOrder[b.grade] || 99;
+      if (gradeA !== gradeB) return gradeA - gradeB;
+      return (a.title || '').localeCompare(b.title || '', 'th');
+    });
+  };
+
   return (
     <div className="container" style={{ padding: '2rem 0', minHeight: '80vh', animation: 'fadeIn 0.5s ease-out' }}>
-      <div className="glass-card" style={{ padding: '3rem 2rem', marginBottom: '3rem', background: 'radial-gradient(circle at top right, rgba(212, 175, 55, 0.2), var(--surface))', border: '1px solid rgba(212, 175, 55, 0.3)' }}>
+      <div className="glass-card" style={{ padding: '3rem 2rem', marginBottom: '3rem', background: 'radial-gradient(circle at top left, rgba(59, 130, 246, 0.2), var(--surface))', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-          <span style={{ fontSize: '2.5rem' }}>👑</span>
+          <span style={{ fontSize: '2.5rem' }}>💎</span>
           <h1 style={{ fontSize: '2.5rem', color: 'var(--primary)', margin: 0 }}>ยินดีต้อนรับสู่ห้อง VIP [ป.4 - ป.6]</h1>
         </div>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.25rem', margin: 0 }}>
@@ -74,34 +96,32 @@ export default async function VIPRoomP46() {
 
       {Object.entries(categoryMap).map(([cat, items]) => {
         if (items.length === 0) return null;
+        const catName = subjectNames[cat] || cat;
+        const sortedItems = sortItems(items);
         return (
           <div key={cat} style={{ marginBottom: '4rem' }}>
             <h2 style={{ fontSize: '1.75rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
               <span style={{ width: '6px', height: '24px', background: 'var(--primary)', borderRadius: '4px' }}></span>
-              {cat}
+              วิชา{catName}
             </h2>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
-              {items.map((product: any) => (
+              {sortedItems.map((product: any) => (
                 <div key={product.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
                   {product.images && product.images.length > 0 ? (
                     <div style={{ height: '180px', borderRadius: '0.5rem', marginBottom: '1.5rem', overflow: 'hidden' }}>
                       <img src={getDirectImageUrl(product.images[0])} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', background: 'rgba(212, 175, 55, 0.1)', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
                       <svg style={{ width: '64px', height: '64px', color: 'var(--primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
                   )}
                   
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span style={{ background: 'var(--border-color)', color: 'var(--text-main)', fontSize: '0.8rem', padding: '0.2rem 0.6rem', borderRadius: '0.25rem' }}>{product.grade}</span>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{product.id}</span>
-                  </div>
-                  
-                  <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', flex: 1 }}>{product.title}</h3>
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>วิชา{catName} {product.grade.replace('P', 'ป.')}</h3>
+                  <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', flex: 1, fontWeight: 500 }}>แพ็กเกจ: {product.title}</p>
                   
                   {product.downloadUrl ? (
                     <a href={product.downloadUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
@@ -127,7 +147,7 @@ export default async function VIPRoomP46() {
             วิชาอื่นๆ
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
-            {uncategorized.map((product: any) => (
+            {sortItems(uncategorized).map((product: any) => (
               <div key={product.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
                 {product.images && product.images.length > 0 ? (
                   <div style={{ height: '180px', borderRadius: '0.5rem', marginBottom: '1.5rem', overflow: 'hidden' }}>
@@ -141,12 +161,8 @@ export default async function VIPRoomP46() {
                   </div>
                 )}
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ background: 'var(--border-color)', color: 'var(--text-main)', fontSize: '0.8rem', padding: '0.2rem 0.6rem', borderRadius: '0.25rem' }}>{product.grade}</span>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{product.id}</span>
-                </div>
-                
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', flex: 1 }}>{product.title}</h3>
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>วิชา{subjectNames[product.category] || product.category} {product.grade.replace('P', 'ป.')}</h3>
+                  <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', flex: 1, fontWeight: 500 }}>แพ็กเกจ: {product.title}</p>
                 
                 {product.downloadUrl ? (
                   <a href={product.downloadUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
