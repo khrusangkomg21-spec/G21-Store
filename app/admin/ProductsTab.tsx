@@ -51,6 +51,32 @@ export default function ProductsTab({ products, fetchData }: { products: any[], 
     'hist': 'ประวัติศาสตร์'
   };
 
+  const packageTypes = [
+    { id: 'single-normal', title: 'แผนการสอน 40 ชั่วโมง + ใบงานพร้อมเฉลย', defaultPrice: 150 },
+    { id: 'single-worksheet', title: 'ใบงาน PNG ไม่ติดลายน้ำ', defaultPrice: 79 },
+    { id: 'single-exam', title: 'ข้อสอบพร้อมเฉลย', defaultPrice: 59 },
+    { id: 'single-onepage', title: 'แผนหน้าเดียว', defaultPrice: 89 },
+    { id: 'single-post', title: 'บันทึกหลังสอน (120 แบบ)', defaultPrice: 99 },
+    { id: 'combo-full', title: 'คอมโบเซ็ต (รวมทุกอย่าง)', defaultPrice: 399 },
+    { id: 'custom', title: 'อื่นๆ (พิมพ์รหัสและชื่อเอง)', defaultPrice: 0 }
+  ];
+
+  const [selectedPkgType, setSelectedPkgType] = useState('single-normal');
+
+  const updateAutoFields = (cat: string, grd: string, pkgId: string) => {
+    if (pkgId === 'custom') return;
+    const pkg = packageTypes.find(p => p.id === pkgId);
+    if (!pkg) return;
+    setFormData(prev => ({
+      ...prev,
+      category: cat,
+      grade: grd,
+      id: `${cat}-${grd}-${pkgId}`,
+      title: pkg.title,
+      price: pkg.defaultPrice
+    }));
+  };
+
   const handleEdit = (prod: any) => {
     setFormData({
       ...prod,
@@ -63,11 +89,12 @@ export default function ProductsTab({ products, fetchData }: { products: any[], 
   };
 
   const handleCreateNew = () => {
+    setSelectedPkgType('single-normal');
     setFormData({ 
-      id: '', 
-      title: '', 
+      id: 'sci-P1-single-normal', 
+      title: 'แผนการสอน 40 ชั่วโมง + ใบงานพร้อมเฉลย', 
       description: '', 
-      price: 0, 
+      price: 150, 
       category: 'sci', 
       grade: 'P1', 
       downloadUrl: '', 
@@ -130,48 +157,43 @@ export default function ProductsTab({ products, fetchData }: { products: any[], 
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.5rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>รหัสสินค้า (ID) *</label>
-              <input 
-                type="text" 
-                required 
-                disabled={!isNew}
-                value={formData.id} 
-                onChange={e => setFormData({...formData, id: e.target.value})}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
-                placeholder="เช่น sci-P1-combo-full"
-              />
+          
+          {isNew && (
+            <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.5rem', border: '1px solid var(--primary)', marginBottom: '0.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--primary)', fontWeight: 600 }}>รูปแบบแพ็กเกจมาตรฐาน (ประหยัดเวลาพิมพ์)</label>
+              <select 
+                value={selectedPkgType} 
+                onChange={e => {
+                  const pkgId = e.target.value;
+                  setSelectedPkgType(pkgId);
+                  if (pkgId !== 'custom') {
+                    updateAutoFields(formData.category, formData.grade, pkgId);
+                  } else {
+                    setFormData(prev => ({...prev, id: '', title: ''}));
+                  }
+                }}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.5)', color: 'white' }}
+              >
+                {packageTypes.map(p => (
+                  <option key={p.id} value={p.id} style={{ color: 'black' }}>{p.title}</option>
+                ))}
+              </select>
             </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>ชื่อสินค้า (Title) *</label>
-              <input 
-                type="text" 
-                required 
-                value={formData.title} 
-                onChange={e => setFormData({...formData, title: e.target.value})}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>ราคา (Price) *</label>
-              <input 
-                type="number" 
-                required 
-                min="0"
-                value={formData.price} 
-                onChange={e => setFormData({...formData, price: Number(e.target.value)})}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
-              />
-            </div>
-          </div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>หมวดหมู่วิชา (Category)</label>
               <select 
                 value={formData.category} 
-                onChange={e => setFormData({...formData, category: e.target.value})}
+                onChange={e => {
+                  const newCat = e.target.value;
+                  if (isNew && selectedPkgType !== 'custom') {
+                    updateAutoFields(newCat, formData.grade, selectedPkgType);
+                  } else {
+                    setFormData({...formData, category: newCat});
+                  }
+                }}
                 style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
               >
                 <option value="sci" style={{ color: 'black' }}>วิทยาศาสตร์</option>
@@ -186,7 +208,14 @@ export default function ProductsTab({ products, fetchData }: { products: any[], 
               <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>ระดับชั้น (Grade)</label>
               <select 
                 value={formData.grade} 
-                onChange={e => setFormData({...formData, grade: e.target.value})}
+                onChange={e => {
+                  const newGrd = e.target.value;
+                  if (isNew && selectedPkgType !== 'custom') {
+                    updateAutoFields(formData.category, newGrd, selectedPkgType);
+                  } else {
+                    setFormData({...formData, grade: newGrd});
+                  }
+                }}
                 style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
               >
                 <option value="P1" style={{ color: 'black' }}>ป.1</option>
@@ -207,6 +236,43 @@ export default function ProductsTab({ products, fetchData }: { products: any[], 
                 />
                 เปิดการขาย (Active)
               </label>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>รหัสสินค้า (ID) *</label>
+              <input 
+                type="text" 
+                required 
+                disabled={!isNew || (isNew && selectedPkgType !== 'custom')}
+                value={formData.id} 
+                onChange={e => setFormData({...formData, id: e.target.value})}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white', opacity: (!isNew || selectedPkgType !== 'custom') ? 0.7 : 1 }}
+                placeholder="เช่น sci-P1-combo-full"
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>ชื่อสินค้า (Title) *</label>
+              <input 
+                type="text" 
+                required 
+                disabled={isNew && selectedPkgType !== 'custom'}
+                value={formData.title} 
+                onChange={e => setFormData({...formData, title: e.target.value})}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white', opacity: (isNew && selectedPkgType !== 'custom') ? 0.7 : 1 }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>ราคา (Price) *</label>
+              <input 
+                type="number" 
+                required 
+                min="0"
+                value={formData.price} 
+                onChange={e => setFormData({...formData, price: Number(e.target.value)})}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+              />
             </div>
           </div>
 
