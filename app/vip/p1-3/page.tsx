@@ -65,9 +65,24 @@ export default async function VIPRoomP13() {
 
   const uncategorized: typeof products = [];
 
+  const normalizeCat = (cat: string) => {
+    if (!cat) return '';
+    if (cat === 'วิทยาศาสตร์') return 'sci';
+    if (cat === 'สังคมศึกษา' || cat === 'สังคม' || cat === 'สังคมและความเป็นพลเมือง') return 'soc';
+    if (cat === 'เศรษฐศาสตร์' || cat === 'เศรษฐกิจและการเงิน') return 'eco';
+    if (cat === 'สุขศึกษา' || cat === 'สุขภาพกายและจิต') return 'hea';
+    if (cat === 'ศิลปะ' || cat === 'ศิลปะและวัฒนธรรมเพื่อสุนทรีภาพ') return 'art';
+    if (cat === 'ภาษาอังกฤษ') return 'eng';
+    if (cat === 'คณิตศาสตร์') return 'math';
+    if (cat === 'ภาษาไทย') return 'thai';
+    if (cat === 'ประวัติศาสตร์') return 'hist';
+    return cat;
+  };
+
   products.forEach(p => {
-    if (categoryMap[p.category]) {
-      categoryMap[p.category].push(p);
+    const cat = normalizeCat(p.category);
+    if (categoryMap[cat]) {
+      categoryMap[cat].push(p);
     } else {
       uncategorized.push(p);
     }

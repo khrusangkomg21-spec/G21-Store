@@ -251,6 +251,107 @@ export default function ProductsTab({ products, fetchData }: { products: any[], 
     );
   }
 
+  // Group by category for admin display
+  const categoryMap: Record<string, typeof products> = {
+    'soc': [],
+    'math': [],
+    'sci': [],
+    'thai': [],
+    'hist': [],
+    'hea': [],
+    'eco': [],
+    'art': [],
+    'eng': [],
+  };
+
+  const uncategorized: typeof products = [];
+
+  const normalizeCat = (cat: string) => {
+    if (!cat) return '';
+    if (cat === 'วิทยาศาสตร์') return 'sci';
+    if (cat === 'สังคมศึกษา' || cat === 'สังคม' || cat === 'สังคมและความเป็นพลเมือง') return 'soc';
+    if (cat === 'เศรษฐศาสตร์' || cat === 'เศรษฐกิจและการเงิน') return 'eco';
+    if (cat === 'สุขศึกษา' || cat === 'สุขภาพกายและจิต') return 'hea';
+    if (cat === 'ศิลปะ' || cat === 'ศิลปะและวัฒนธรรมเพื่อสุนทรีภาพ') return 'art';
+    if (cat === 'ภาษาอังกฤษ') return 'eng';
+    if (cat === 'คณิตศาสตร์') return 'math';
+    if (cat === 'ภาษาไทย') return 'thai';
+    if (cat === 'ประวัติศาสตร์') return 'hist';
+    return cat;
+  };
+
+  products.forEach(p => {
+    const cat = normalizeCat(p.category);
+    if (categoryMap[cat]) {
+      categoryMap[cat].push(p);
+    } else {
+      uncategorized.push(p);
+    }
+  });
+
+  const sortItems = (items: any[]) => {
+    return [...items].sort((a, b) => {
+      const gradeOrder: Record<string, number> = { 'P1': 1, 'P2': 2, 'P3': 3, 'P4': 4, 'P5': 5, 'P6': 6 };
+      const gradeA = gradeOrder[a.grade] || 99;
+      const gradeB = gradeOrder[b.grade] || 99;
+      if (gradeA !== gradeB) return gradeA - gradeB;
+      return (a.title || '').localeCompare(b.title || '', 'th');
+    });
+  };
+
+  const renderProductCard = (product: any, catName: string) => {
+    const gradeStr = product.grade.replace('P', 'ป.');
+    const currentLinkValue = inlineLinks[product.id] !== undefined ? inlineLinks[product.id] : (product.downloadUrl || '');
+    
+    return (
+      <div key={product.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)', flexWrap: 'wrap', opacity: product.isActive ? 1 : 0.5 }}>
+        <div style={{ flex: '1', minWidth: '300px' }}>
+          <div style={{ fontWeight: 600, color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '1.1rem' }}>
+            {!product.isActive && <span style={{ background: '#ef4444', color: 'white', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>ปิด</span>}
+            วิชา{catName} {gradeStr}
+          </div>
+          <div style={{ fontSize: '0.9rem', color: 'var(--primary)', marginBottom: '0.5rem' }}>แพ็กเกจ: {product.title}</div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>รหัส: {product.id} | ราคา: ฿{product.price} | รูปภาพ: {product.images?.length || 0} รูป</div>
+          
+          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <input 
+              type="url"
+              placeholder="วางลิงก์ Google Drive / OneDrive ที่นี่"
+              value={currentLinkValue}
+              onChange={(e) => setInlineLinks({ ...inlineLinks, [product.id]: e.target.value })}
+              style={{ flex: 1, minWidth: '250px', padding: '0.5rem 0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white', fontSize: '0.875rem' }}
+            />
+            <button 
+              className="btn btn-primary"
+              onClick={() => handleSaveLink(product.id)}
+              disabled={savingLink === product.id || (inlineLinks[product.id] === undefined && !product.downloadUrl)}
+              style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', opacity: savingLink === product.id ? 0.7 : 1 }}
+            >
+              {savingLink === product.id ? 'กำลังบันทึก...' : '💾 บันทึกลิงก์'}
+            </button>
+          </div>
+        </div>
+        
+        <div style={{ display: 'flex', gap: '0.5rem', alignSelf: 'flex-start' }}>
+          <button 
+            className="btn btn-outline"
+            onClick={() => handleEdit(product)}
+            style={{ padding: '0.5rem 1rem' }}
+          >
+            ✏️ แก้ไข
+          </button>
+          <button 
+            className="btn"
+            onClick={() => handleDelete(product.id)}
+            style={{ padding: '0.5rem 1rem', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}
+          >
+            ลบ
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -258,64 +359,38 @@ export default function ProductsTab({ products, fetchData }: { products: any[], 
         <button className="btn btn-primary" onClick={handleCreateNew}>+ เพิ่มสินค้าใหม่</button>
       </div>
       
-      <div style={{ display: 'grid', gap: '1rem' }}>
-        {products.map(product => {
-          const catName = subjectNames[product.category] || product.category;
-          const gradeStr = product.grade.replace('P', 'ป.');
-          const currentLinkValue = inlineLinks[product.id] !== undefined ? inlineLinks[product.id] : (product.downloadUrl || '');
-          
-          return (
-            <div key={product.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)', flexWrap: 'wrap', opacity: product.isActive ? 1 : 0.5 }}>
-              <div style={{ flex: '1', minWidth: '300px' }}>
-                <div style={{ fontWeight: 600, color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '1.1rem' }}>
-                  {!product.isActive && <span style={{ background: '#ef4444', color: 'white', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>ปิด</span>}
-                  วิชา{catName} {gradeStr}
-                </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--primary)', marginBottom: '0.5rem' }}>แพ็กเกจ: {product.title}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>รหัส: {product.id} | ราคา: ฿{product.price} | รูปภาพ: {product.images?.length || 0} รูป</div>
-                
-                <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <input 
-                    type="url"
-                    placeholder="วางลิงก์ Google Drive / OneDrive ที่นี่"
-                    value={currentLinkValue}
-                    onChange={(e) => setInlineLinks({ ...inlineLinks, [product.id]: e.target.value })}
-                    style={{ flex: 1, minWidth: '250px', padding: '0.5rem 0.75rem', borderRadius: '0.25rem', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white', fontSize: '0.875rem' }}
-                  />
-                  <button 
-                    className="btn btn-primary"
-                    onClick={() => handleSaveLink(product.id)}
-                    disabled={savingLink === product.id || (inlineLinks[product.id] === undefined && !product.downloadUrl)}
-                    style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', opacity: savingLink === product.id ? 0.7 : 1 }}
-                  >
-                    {savingLink === product.id ? 'กำลังบันทึก...' : '💾 บันทึกลิงก์'}
-                  </button>
+      {products.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>ยังไม่มีสินค้าในระบบ</div>
+      ) : (
+        <div>
+          {Object.entries(categoryMap).map(([cat, items]) => {
+            if (items.length === 0) return null;
+            const catName = subjectNames[cat] || cat;
+            const sortedItems = sortItems(items);
+            return (
+              <div key={cat} style={{ marginBottom: '3rem' }}>
+                <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                  วิชา{catName} ({items.length} รายการ)
+                </h3>
+                <div style={{ display: 'grid', gap: '1rem' }}>
+                  {sortedItems.map(product => renderProductCard(product, catName))}
                 </div>
               </div>
-              
-              <div style={{ display: 'flex', gap: '0.5rem', alignSelf: 'flex-start' }}>
-                <button 
-                  className="btn btn-outline"
-                  onClick={() => handleEdit(product)}
-                  style={{ padding: '0.5rem 1rem' }}
-                >
-                  ✏️ แก้ไข
-                </button>
-                <button 
-                  className="btn"
-                  onClick={() => handleDelete(product.id)}
-                  style={{ padding: '0.5rem 1rem', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}
-                >
-                  ลบ
-                </button>
+            );
+          })}
+          
+          {uncategorized.length > 0 && (
+            <div style={{ marginBottom: '3rem' }}>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                วิชาอื่นๆ ({uncategorized.length} รายการ)
+              </h3>
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {sortItems(uncategorized).map(product => renderProductCard(product, subjectNames[product.category] || product.category))}
               </div>
             </div>
-          );
-        })}
-        {products.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>ยังไม่มีสินค้าในระบบ</div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

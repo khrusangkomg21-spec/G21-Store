@@ -74,9 +74,24 @@ export default function MyFiles() {
 
   const uncategorized: typeof files = [];
 
+  const normalizeCat = (cat: string) => {
+    if (!cat) return '';
+    if (cat === 'วิทยาศาสตร์') return 'sci';
+    if (cat === 'สังคมศึกษา' || cat === 'สังคม' || cat === 'สังคมและความเป็นพลเมือง') return 'soc';
+    if (cat === 'เศรษฐศาสตร์' || cat === 'เศรษฐกิจและการเงิน') return 'eco';
+    if (cat === 'สุขศึกษา' || cat === 'สุขภาพกายและจิต') return 'hea';
+    if (cat === 'ศิลปะ' || cat === 'ศิลปะและวัฒนธรรมเพื่อสุนทรีภาพ') return 'art';
+    if (cat === 'ภาษาอังกฤษ') return 'eng';
+    if (cat === 'คณิตศาสตร์') return 'math';
+    if (cat === 'ภาษาไทย') return 'thai';
+    if (cat === 'ประวัติศาสตร์') return 'hist';
+    return cat;
+  };
+
   files.forEach(f => {
-    if (categoryMap[f.category]) {
-      categoryMap[f.category].push(f);
+    const cat = normalizeCat(f.category);
+    if (categoryMap[cat]) {
+      categoryMap[cat].push(f);
     } else {
       uncategorized.push(f);
     }
